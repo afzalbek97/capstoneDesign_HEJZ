@@ -1,67 +1,129 @@
 # U-STAR 🎵💃
 
-생성형 AI 기반 음악 생성 및 감정 연계 안무 추천 커뮤니티 플랫폼
-
-⸻
-
-## 📌 프로젝트 소개
-
-U-STAR는 사용자가 원하는 분위기의 음악을 생성하고, 생성된 음악의 감정을 분석하여 어울리는 안무를 추천받을 수 있는 커뮤니티 기반 서비스입니다.
-초·중학생도 쉽게 음악 창작과 퍼포먼스 경험을 즐길 수 있도록 기획했습니다.
-
-생성형 AI를 단순 호출하는 데 그치지 않고, 음악 생성 → 감정 추출 → 안무 추천 → 커뮤니티 공유 흐름이 자연스럽게 이어지도록 설계했습니다.
+> **O'zbek** | [English](#english)
 
 ---
-## 주요 기능
-1. AI 음악 생성
-- 사용자가 입력한 프롬프트 기반 음악 생성
-- SUNO API 활용
 
-2. 가사 감정 분석
-- 생성된 가사를 OpenAI GPT 기반 프롬프트 엔지니어링으로 분석
-- 미리 정의한 감성 범주 내로 결과 제한
+## O'zbek tili
 
-3. 감정 기반 안무 추천
-- 감정 분류 결과와 안무 데이터셋 매핑
-- 감정별 추천 안무 제공
+### Loyiha haqida
 
-4. 커뮤니티 기능
-- 게시글 업로드
-- 좋아요/피드 노출
-- 사용자 콘텐츠 공유
+**U-STAR** — sun'iy intellekt yordamida musiqa yaratish va raqsga o'rgatish platformasi. O'rta maktab o'quvchilari uchun mo'ljallangan: foydalanuvchi o'zi xohlagan kayfiyatdagi musiqani yaratadi, so'ng AI shu musiqaning his-tuyg'usini tahlil qilib, mos raqs harakatlarini tavsiya etadi. Yaratilgan kontent jamiyat lentasida boshqalar bilan ulashiladi.
 
-5. 좋아요 기반 추천 로직
-- 단순 가중치 기반 피드 추천
-- 좋아요 수가 높은 게시물을 우선 노출
+### Qanday ishlaydi?
+
+```
+Foydalanuvchi prompt yozadi
+       ↓
+SUNO API musiqa yaratadi
+       ↓
+OpenAI GPT qo'shiq so'zlaridan his-tuyg'uni aniqlaydi
+(masalan: "xursandchilik", "g'amginlik", "hayajon")
+       ↓
+His-tuyg'uga mos raqs harakatlari tavsiya etiladi
+       ↓
+Foydalanuvchi raqsni mashq qilib, jamoatga ulashadi
+```
+
+### Asosiy imkoniyatlar
+
+| # | Imkoniyat | Tavsif |
+|---|-----------|--------|
+| 1 | **AI Musiqa Yaratish** | Foydalanuvchi kayfiyat va mavzuni yozadi, SUNO API asl musiqa yaratadi |
+| 2 | **His-tuyg'u Tahlili** | GPT qo'shiq so'zlarini o'qib, ularning his-tuyg'u kategoriyasini aniqlaydi |
+| 3 | **Raqs Tavsiyasi** | Aniqlangan his-tuyg'uga mos raqs harakatlari va videolari ko'rsatiladi |
+| 4 | **Jamiyat Lentasi** | Yaratilgan kontent yuklanadi, boshqalar lentasida ko'rinadi |
+| 5 | **Like asosida tavsiya** | Ko'p like olgan postlar lentada ustunlik qiladi |
+
+### Texnologiyalar
+
+| Qatlam | Texnologiya |
+|--------|-------------|
+| Mobil ilova | React Native (TypeScript) |
+| Server | Spring Boot 3.3 (Java 17) |
+| Ma'lumotlar bazasi | MySQL 8 |
+| Infratuzilma | Docker |
+| AI — Musiqa | SUNO API |
+| AI — Tahlil | OpenAI GPT |
+| Fayl saqlash | AWS S3 |
+
+### Loyiha tuzilmasi
+
+```
+capstoneDesign_HEJZ/
+├── HEJZ_front/   ← React Native mobil ilova (Android/iOS)
+└── HEJZ_back/    ← Spring Boot REST API serveri
+```
 
 ---
-## 기술 스택
-**Frontend**
-- React Native
 
-**Backend**
-- Spring Boot
+## English
 
-**DB**
-- MySQL
+### About the Project
 
-**Infra**
-- Docker
+**U-STAR** is an AI-powered music generation and dance recommendation community platform targeting middle and high school students. Users generate original music by describing a mood or theme, the AI analyzes the emotional tone of the lyrics, and matching dance choreography is recommended. Created content can be shared on a community feed.
 
-**AI**
-- chat GPT
-- Suno
+### How It Works
 
-**ETC Tools**
-- Git
-- Notion
----
-## 시스템 구조
+```
+User writes a prompt (mood/theme)
+       ↓
+SUNO API generates original music + lyrics
+       ↓
+OpenAI GPT analyzes lyrics → detects emotion
+(e.g. happy, sad, excited, calm...)
+       ↓
+Dance choreography matching that emotion is recommended
+       ↓
+User practices and shares their performance on the feed
+```
 
----
-## 향후 개선 방향
-- [ ] Redis 기반 인기 게시물 캐싱
-- [ ] 추천 알고리즘 고도화
+### Key Features
 
-## 폴더 트리
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | **AI Music Generation** | User describes a vibe; SUNO API generates an original song |
+| 2 | **Emotion Analysis** | GPT reads the generated lyrics and classifies their emotional category |
+| 3 | **Dance Recommendation** | Dance moves and videos matching the detected emotion are presented |
+| 4 | **Community Feed** | Users upload their content and appear in others' feeds |
+| 5 | **Like-based Recommendation** | Posts with more likes are ranked higher in the feed |
 
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Mobile App | React Native (TypeScript) |
+| Backend API | Spring Boot 3.3 (Java 17) |
+| Database | MySQL 8 |
+| Infrastructure | Docker |
+| AI — Music | SUNO API |
+| AI — Analysis | OpenAI GPT |
+| File Storage | AWS S3 |
+
+### Project Structure
+
+```
+capstoneDesign_HEJZ/
+├── HEJZ_front/   ← React Native mobile app (Android/iOS)
+└── HEJZ_back/    ← Spring Boot REST API server
+```
+
+### System Architecture
+
+```
+Mobile App (React Native)
+        │  REST API + JWT Auth
+        ▼
+Spring Boot Server (:8080)
+   ├── Music domain   → SUNO API
+   ├── Dance domain   → OpenAI GPT
+   └── Community domain → AWS S3
+        │
+        ▼
+   MySQL Database
+```
+
+### Future Improvements
+
+- [ ] Redis-based caching for trending posts
+- [ ] More advanced recommendation algorithm
