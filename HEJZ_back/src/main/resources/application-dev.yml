@@ -9,9 +9,11 @@ spring:
       max-request-size: 200MB
 
   datasource:
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+    # Docker: SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/... (docker-compose.yml tomonidan beriladi)
+    # Lokal:  SPRING_DATASOURCE_URL o'rnatilmasa localhost:3310 ishlatiladi
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3310/${MYSQL_DATABASE:capstone_db}}
+    username: ${MYSQL_USER:hejz_user}
+    password: ${MYSQL_PASSWORD:hejz_password}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   web:

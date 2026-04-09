@@ -1,9 +1,25 @@
-HEJZ_front/android/app/.cxx/
-node_modules
-HEJZ_back/music/
+# ---- IDE ----
 .idea/
-music/
-HEJZ_back/src/main/resources/application.properties
-HEJZ_front/android/app/src/main/res/raw/
-
 .vscode/
+
+# ---- Node (root level artifacts) ----
+node_modules/
+
+# ---- Expo (root level) ----
+.expo/
+
+# ---- Backend ----
+HEJZ_back/music/
+HEJZ_back/src/main/resources/application.properties
+HEJZ_back/.env
+
+# ---- Frontend ----
+HEJZ_front/android/app/.cxx/
+HEJZ_front/android/app/src/main/res/raw/
+HEJZ_front/.env
+
+# ---- Music files (test/dev only) ----
+music/
+
+# ---- macOS ----
+.DS_Store
