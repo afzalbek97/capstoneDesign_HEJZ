@@ -1,4 +1,3 @@
-// src/components/FollowButton.tsx - 완전 교체
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { followUser, unfollowUser } from '../api/follow';
@@ -16,12 +15,10 @@ export default function FollowButton({ username, hideIfMe, initialFollowing = fa
   const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [isMe, setIsMe] = useState(false);
 
-  // 🔥 중요: initialFollowing 변경 시 상태 동기화
   useEffect(() => {
     setIsFollowing(initialFollowing);
   }, [initialFollowing]);
 
-  // 내 username 확인
   useEffect(() => {
     (async () => {
       try {
@@ -56,7 +53,6 @@ export default function FollowButton({ username, hideIfMe, initialFollowing = fa
     }
   };
 
-  // 본인이면 숨김
   if (hideIfMe && isMe) {
     return null;
   }

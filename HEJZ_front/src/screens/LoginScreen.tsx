@@ -6,7 +6,11 @@ import {
 } from 'react-native';
 import { login } from '../api/auth';
 
-export default function LoginScreen({ navigation }: any) {
+import type { RootNavigationProp } from '../navigation/types';
+
+type Props = { navigation: RootNavigationProp };
+
+export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,15 +24,12 @@ export default function LoginScreen({ navigation }: any) {
 
     setLoading(true);
     try {
-      // ⬇︎ 토큰 저장까지 login()이 처리함 (AsyncStorage)
-      const { sessionVersion } = await login({ username: u, password }); // ★ 받기
+      const { sessionVersion } = await login({ username: u, password });
 
-      // 메인으로 진입 (원하면 reset으로 완전 초기화)
       // navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
       navigation.reset({ index: 0, routes: [{ name: 'Main', params: { sessionVersion } }] });
-    } catch (e: any) {
+    } catch (e: unknown) {
       const msg = (e?.message || '').toString();
-      // 서버가 401이면 보통 "HTTP 401" 또는 커스텀 메시지
       if (/401/.test(msg)) {
         Alert.alert('로그인 실패', '아이디/비밀번호를 확인해주세요.');
       } else {

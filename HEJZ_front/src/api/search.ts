@@ -22,7 +22,6 @@ export async function searchAll(params: { keyword: string; scope?: string; limit
   const { keyword, scope, limit } = params;
   const token = await getAuthToken();
 
-  // ✅ 백엔드가 최소 keyword만 받으면 이것만 보내도 OK
   const url = `${BASE_URL}/api/search?` + buildQS({
     keyword,
     ...(scope ? { scope } : {}),
@@ -46,5 +45,5 @@ export async function searchAll(params: { keyword: string; scope?: string; limit
   if (typeof json?.code === 'number' && json.code !== 200) {
     throw new Error(json?.message || json?.msg || '검색 응답 에러');
   }
-  return json.data; // ⬅️ 배열 또는 객체 그대로 돌려줌
+  return json.data;
 }

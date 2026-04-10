@@ -1,5 +1,4 @@
 // src/polyfills/urlsearchparams.ts
-// RN 최소 기능: set/append/get/delete/toString
 
 type InitType =
   | string
@@ -56,7 +55,6 @@ class SimpleURLSearchParams {
   }
 }
 
-// 전역 주입 (기존이 있어도 set이 없으면 교체)
 const g: any = (globalThis as any);
 const Existing = g.URLSearchParams;
 

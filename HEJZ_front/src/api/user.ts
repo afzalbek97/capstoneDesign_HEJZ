@@ -34,7 +34,7 @@ export const SK = {
 } as const;
 
 const ME_PATH = '/api/user/myinfo';
-const PUBLIC_INFO_PATH = '/api/user/info'; // 🔁 변경: POST { username }
+const PUBLIC_INFO_PATH = '/api/user/info';
 
 /** JWT에서 sub 클레임 추출 (실패해도 조용히 무시) */
 function decodeJwtSub(token: string | null | undefined): string | null {
@@ -65,13 +65,11 @@ function mapToUserProfile(payload: any): UserProfile {
 
 /** ApiResponse 형태도 함께 처리해서 payload 꺼내기 */
 function extractPayloadAndMaybeThrow(raw: string, status: number) {
-  // 기본 에러 메시지
   const defaultMsg = `HTTP ${status}`;
   if (!raw) return {};
 
   try {
     const parsed = JSON.parse(raw);
-    // ApiResponse 형태인 경우: { code, msg, data }
     if (parsed && typeof parsed === 'object' && ('code' in parsed || 'data' in parsed)) {
       const code = typeof parsed.code === 'number' ? parsed.code : status;
       if (code !== 200) {
@@ -80,14 +78,11 @@ function extractPayloadAndMaybeThrow(raw: string, status: number) {
       }
       return parsed.data ?? {};
     }
-    // 그냥 data가 바로 오는 경우
     return parsed;
   } catch (e) {
-    // JSON 파싱 실패 시, 상태코드가 에러면 raw 더미로 던짐
     if (status < 200 || status >= 300) {
       throw new Error(raw || defaultMsg);
     }
-    // 2xx인데 JSON이 아니면 빈 객체
     return {};
   }
 }
@@ -107,7 +102,6 @@ export async function fetchMyProfile(): Promise<UserProfile> {
 
   const raw = await res.text().catch(() => '');
   if (!res.ok) {
-    // HTTP 에러
     try {
       const j = raw ? JSON.parse(raw) : null;
       throw new Error(j?.msg || j?.message || `HTTP ${res.status}`);
@@ -120,7 +114,6 @@ export async function fetchMyProfile(): Promise<UserProfile> {
 
   const profile: UserProfile = mapToUserProfile(payload);
 
-  // username 보조 채움 (JWT sub)
   if (!profile.username && token) {
     const sub = decodeJwtSub(token);
     if (sub) profile.username = sub;
@@ -165,7 +158,6 @@ export async function fetchUserInfoById(userId: number): Promise<PublicUser> {
   return userData;
 }
 
-// fetchUserPublicByUsername도 추가 (누락된 함수)
 export async function fetchUserPublicByUsername(username: string, userId?: number): Promise<PublicUser> {
 
   const keys = ['auth.token', 'token', 'accessToken', 'jwt'];
@@ -180,8 +172,8 @@ export async function fetchUserPublicByUsername(username: string, userId?: numbe
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
-      userId: userId, // ✅ userId 우선 사용
-      ...(userId ? {} : { username }) // userId 없으면 username 시도
+      userId: userId,
+      ...(userId ? {} : { username })
     }),
   });
 

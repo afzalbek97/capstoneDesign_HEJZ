@@ -1,5 +1,3 @@
-// DB lyrics_json 기반: \n을 2번 만나면 한 블록으로 처리 (+ 폴백 분할)
-// 첫 진입 시 1) 첫 블록 "response의 lyrics" 2줄 노출 2) 해당 구간 오디오 자동 반복
 import React, { useEffect, useMemo, useRef, useState,useCallback} from 'react';
 import {
   Alert,
@@ -25,7 +23,6 @@ import {
   type SongSelectionDto,
 } from '../../api/dance';
 
-// ====== 타입 ======
 type LWord = { word: string; startS: number; endS: number };
 type TimingBlock = { start: number; end: number };
 
@@ -41,16 +38,14 @@ type Props = {
       p_lyricsJsonRaw?: string;
     };
   };
-  navigation: any;
+  navigation: any; // React Navigation type
 };
 
-// ====== 아이콘 ======
 const ICON_RESET = require('../../assets/icon/reset.png');
 const ICON_CHECK = require('../../assets/icon/check.png');
 const ICON_PAUSE = require('../../assets/icon/Pause.png');
 const ICON_PLAY  = require('../../assets/icon/Play.png');
 
-// ====== 유틸 ======
 /**
  * [Verse2] 태그 이전까지의 가사만 추출
  */
@@ -60,15 +55,12 @@ function extractLyricsBeforeVerse2(src?: string): string {
   let s = (src ?? '').replace(/\\n/g, '\n');
   s = s.replace(/\r/g, '');
 
-  // [Verse2], [Verse 2], [VERSE2] 등 다양한 형태 감지
   const verse2Index = s.search(/\[(Verse\s*2|VERSE\s*2|verse\s*2)\]/i);
 
   if (verse2Index !== -1) {
-    // Verse2 이전까지만 자르기
     s = s.substring(0, verse2Index);
   }
 
-  // 모든 태그 제거 ([Verse], [Chorus] 등)
   s = s.replace(/\[.*?\]\n?/g, '');
 
   return s.trim();
@@ -89,17 +81,14 @@ function parseAlignedWords(jsonRaw?: string, plainLyrics?: string): LWord[] {
       endS: Number(x?.endS ?? 0),
     }));
 
-    // plainLyrics에서 [Verse2] 위치 찾기
     if (plainLyrics) {
       const verse2Match = plainLyrics.match(/\[(Verse\s*2|VERSE\s*2|verse\s*2)\]/i);
       if (verse2Match && verse2Match.index !== undefined) {
-        // [Verse2] 태그가 나타나는 단어의 인덱스 찾기
         let charCount = 0;
         let cutoffIndex = allWords.length;
 
         for (let i = 0; i < allWords.length; i++) {
           const word = allWords[i].word;
-          // 태그 발견 시 해당 지점에서 자르기
           if (word.includes('[Verse') || word.includes('[VERSE') || word.includes('[verse')) {
             const tagMatch = word.match(/\[(Verse\s*2|VERSE\s*2|verse\s*2)\]/i);
             if (tagMatch) {
@@ -138,7 +127,6 @@ function buildTimingBlocks(words: LWord[], desiredCount: number): TimingBlock[] 
     const w = words[i];
     const txt = w.word ?? '';
 
-    // [Verse], [Chorus] 등 태그는 건너뛰기
     if (/^\[.*\]$/.test(txt.trim())) {
       continue;
     }
@@ -149,11 +137,9 @@ function buildTimingBlocks(words: LWord[], desiredCount: number): TimingBlock[] 
       lastEnd = w.endS;
     }
 
-    // 단어 끝에 \n이 있는지 확인 (마지막 문자가 \n)
     if (txt.endsWith('\n')) {
       lineBreaks++;
 
-      // 2번의 줄바꿈을 만나면 블록 완성
       if (lineBreaks >= 2 && blockStart != null && lastEnd != null) {
         cutBlocks.push({ start: blockStart, end: lastEnd });
         blockStart = null;
@@ -163,7 +149,6 @@ function buildTimingBlocks(words: LWord[], desiredCount: number): TimingBlock[] 
     }
   }
 
-  // 마지막 블록 처리
   if (blockStart != null && lastEnd != null) {
     cutBlocks.push({ start: blockStart, end: lastEnd });
   }
@@ -172,7 +157,6 @@ function buildTimingBlocks(words: LWord[], desiredCount: number): TimingBlock[] 
     return cutBlocks.slice(0, desiredCount);
   }
 
-  // 폴백: 균등 분할
   const totalEnd = words[words.length - 1].endS || 0;
   if (totalEnd <= 0) return [{ start: 0, end: 0 }];
 
@@ -225,7 +209,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
   const [playerMotionId, setPlayerMotionId] = useState<string | null>(null);
   const [playerUrl, setPlayerUrl] = useState<string | null>(null);
 
-  // 오디오 상태 - 개선된 루프 로직
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [loopStart, setLoopStart] = useState<number | null>(null);
@@ -237,7 +220,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
 
   const isFinished = useMemo(() => currentIndex >= recs.length, [currentIndex, recs.length]);
 
-  // ========== 초기 로드 ==========
   useEffect(() => {
     (async () => {
       try {
@@ -272,7 +254,7 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
         setLoopEnd(tBlocks[0].end);
         setCurrentTime(tBlocks[0].start);
         setAutoPlayedOnce(false);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setAnalyzeErr(e?.message ?? '초기 로드 실패');
       } finally {
         setLoading(false);
@@ -280,7 +262,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     })();
   }, [route.params]);
 
-  // ========== 후보 바뀔 때 응답 URL 로드 (개선됨) ==========
   useEffect(() => {
     if (loading || isFinished) return;
 
@@ -301,17 +282,13 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
         setLoadingMotions(true);
         const raw = await getMotionUrl(motionId);
 
-        // ✅ URL 정리 개선
         let url = raw.trim().replace(/^["']|["']$/g, '');
 
-        // ✅ URL 유효성 검사
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           throw new Error('유효하지 않은 URL입니다');
         }
 
-        // ✅ 디버깅용 로그
 
-        // ✅ 현재 구간의 URL을 Map에 저장
         setMotionUrlsMap(prev => {
           const newMap = new Map(prev);
           newMap.set(motionId, url);
@@ -320,7 +297,7 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
 
         setPlayerMotionId(motionId);
         setPlayerUrl(url);
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('오류', '비디오 URL을 불러올 수 없습니다.\n' + (e?.message || ''));
         setPlayerMotionId(null);
         setPlayerUrl(null);
@@ -330,7 +307,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     })();
   }, [currentIndex, ptrByBlock, recs, loading, isFinished]);
 
-  // ========== 블록 바뀌면 루프 갱신 ==========
   useEffect(() => {
     if (isFinished) {
       setLoopStart(null);
@@ -344,7 +320,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
       setCurrentTime(blk.start);
       setAutoPlayedOnce(false);
 
-      // 재생 중이면 새 구간으로 즉시 이동
       if (isPlaying) {
         try {
           RNSoundPlayer.seek(blk.start);
@@ -354,13 +329,11 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     }
   }, [currentIndex, timing, isFinished]);
 
-  // ========== 개선된 오디오 루프 (렉 최소화) ==========
   const audioUrl = route.params.p_filepath;
 
   const startLoopTicker = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    // 200ms로 늘려서 CPU 부하 감소
     const id = setInterval(async () => {
       try {
         const info = await RNSoundPlayer.getInfo();
@@ -369,11 +342,9 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
         setDuration(info.duration || 0);
 
         if (loopStart != null && loopEnd != null) {
-          // seek 직후 0.5초는 체크 건너뛰기 (렉 방지)
           const timeSinceLastSeek = Date.now() - lastSeekTimeRef.current;
           if (timeSinceLastSeek < 500) return;
 
-          // 여유 마진을 0.15초로 늘림
           const MARGIN = 0.15;
           if (now >= loopEnd - MARGIN) {
             try {
@@ -440,7 +411,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     };
   }, []);
 
-  // ========== 자동 재생 ==========
   useEffect(() => {
     if (loading || isFinished) return;
     if (loopStart == null || loopEnd == null) return;
@@ -449,7 +419,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     setAutoPlayedOnce(true);
   }, [loading, isFinished, loopStart, loopEnd, autoPlayedOnce]);
 
-  // ========== 후보 변경/선택 ==========
   const cycleCandidate = () => {
     const rec = recs[currentIndex];
     if (!rec) return;
@@ -494,12 +463,10 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     setCurrentIndex(i => i + 1);
   };
 
-  // ========== 저장 및 녹화 화면 이동 ==========
   useEffect(() => {
     (async () => {
       if (!isFinished || selections.length === 0) return;
       try {
-        // 곡 정보와 함께 저장
         const songSelection: SongSelectionDto = {
           songId: route.params.p_id,
           songTitle: route.params.p_title,
@@ -509,13 +476,12 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
 
 
         const msg = await saveSongSelection(songSelection);
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('오류', e?.message ?? '저장 중 오류가 발생했어요.');
       }
     })();
   }, [isFinished, selections, route.params]);
 
-  // ========== 녹화 화면으로 이동하는 함수 (개선됨 + 시간순 정렬) ==========
   const goToRecording = useCallback(async () => {
     if (selections.length === 0 || timing.length === 0) {
       Alert.alert('오류', '선택된 안무가 없습니다.');
@@ -523,14 +489,12 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     }
 
 
-    // 구간별 데이터 생성 - URL이 없으면 다시 로드
     const motionSegments = await Promise.all(
       selections.map(async (sel, idx) => {
         const rec = recs[idx];
         const lyrics = (rec as any)?.lyrics || (rec as any)?.lyricsGroup || '';
         const motionId = sel.selectedMotionIds[0];
 
-        // URL이 Map에 없으면 다시 로드
         let motionUrl = motionUrlsMap.get(motionId);
         if (!motionUrl) {
           try {
@@ -555,7 +519,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
 
     const validSegments = motionSegments.filter(seg => seg.motionUrl);
 
-    // ✅ 시간 순서대로 정렬 (중요!)
     const sortedSegments = validSegments.sort((a, b) => a.startTime - b.startTime);
 
 
@@ -571,7 +534,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
     });
   }, [selections, timing, recs, motionUrlsMap, navigation, route.params.p_filepath]);
 
-  // ========== 렌더 ==========
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -635,7 +597,6 @@ export default function DanceRecommendScreen({ route, navigation }: Props) {
                 }}
                 onLoad={() =>}
 
-// ====== 스타일 ======
 const styles = StyleSheet.create({
   background: { flex: 1 },
 

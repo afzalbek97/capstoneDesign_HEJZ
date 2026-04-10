@@ -1,4 +1,3 @@
-// src/api/follow.ts (새 파일)
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from './baseUrl';
 

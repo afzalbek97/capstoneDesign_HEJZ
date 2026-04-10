@@ -1,10 +1,9 @@
-// SunoPreviewScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, ImageBackground } from 'react-native';
 import Slider from '@react-native-community/slider';
 import axios from 'axios';
 import SoundPlayer from 'react-native-sound-player';
-import { RouteProp } from '@react-navigation/native';
+import BASE_URL from '../api/baseUrl';
 
 // interface Props {
 //   route: RouteProp<{ params: { title: string; audioUrl: string } }, 'params'>;
@@ -13,7 +12,7 @@ import { RouteProp } from '@react-navigation/native';
 const SunoPreviewScreen = () => {
 //   const { title, audioUrl } = route.params;
   const [title, setTitle] = useState('');
-  const [callbackUrl, setCallbackUrl] = useState('https://9f1c-115-20-243-238.ngrok-free.app');
+  const [callbackUrl, setCallbackUrl] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sourceAudioUrl, setSourceAudioUrl] = useState('');
   const [duration, setDuration] = useState(0);
@@ -57,7 +56,6 @@ const SunoPreviewScreen = () => {
 
             lyricsAnalyze();
 
-//             Alert.alert('불러오기 완료', '🎵 '+song.title+' 를 재생할 수 있어요!');
           } catch (err) {
           }
         };
@@ -66,11 +64,11 @@ const SunoPreviewScreen = () => {
         try {
           const cleanedLyrics = stripSectionHeaders(lyrics);
           const parsedLyrics = cleanedLyrics.replace(/\n/g, "\\n");
-          setParseLyrics(parsedLyrics); // 필요하면 화면에 띄우기용
+          setParseLyrics(parsedLyrics);
 
 
           const res = await axios.post(
-            'https://9f1c-115-20-243-238.ngrok-free.app/api/emotion/analyze',
+            `${BASE_URL}/api/emotion/analyze`,
             { lyrics: parsedLyrics },
             {
               headers: {
@@ -86,17 +84,16 @@ const SunoPreviewScreen = () => {
       function stripSectionHeaders(lyrics: string): string {
         return lyrics
           .split('\n')
-          .filter(line => !line.trim().startsWith('[')) // 헤더([Chorus]) 제거
-          .filter(line => line.trim() !== '')           // 빈 줄 제거
-          .join('\n');                                  // 줄바꿈 유지
+          .filter(line => !line.trim().startsWith('['))
+          .filter(line => line.trim() !== '')
+          .join('\n');
       }
 
 //       useEffect(() => {
-//          lyricsAnalyze(); // 가사 분석 요청 api
 //          }, [lyrics]);
 
   const playSong = () => {
-    setIsLoading(true); // 🎧 로딩 시작
+    setIsLoading(true);
     try {
       SoundPlayer.playUrl(sourceAudioUrl);
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -106,7 +103,6 @@ const SunoPreviewScreen = () => {
           setCurrentTime(info.currentTime || 0);
           setDuration(info.duration || 0);
 
-          // ✅ 재생 중인 상태라면 로딩 끝내기 (한 번만)
           if (isLoading && info.currentTime > 0) {
             setIsLoading(false);
           }
@@ -216,7 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     backgroundColor: '#fff',
-    marginBottom: 12,  // ✅ 추가
+    marginBottom: 12,
   },
   header: {
     fontSize: 20,

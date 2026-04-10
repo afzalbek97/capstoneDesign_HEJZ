@@ -19,7 +19,6 @@ import { fetchUserPublicByUsername, fetchUserInfoById } from '../../api/user';
 
 const { width } = Dimensions.get('window');
 
-// 스코프 2종만 사용
 const SCOPES = ['ALL', 'FOLLOWING'] as const;
 type Scope = typeof SCOPES[number];
 
@@ -28,14 +27,11 @@ function absUrl(u?: string | null) {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u}`;
 }
 
-// userId -> username 해석
 function resolveUsernameFromItem(it: any, idMap: Map<number, string>): string | undefined {
-  // 1순위: 아이템에 직접 포함된 username
   if (typeof it?.username === 'string' && it.username) return it.username;
   if (typeof it?.authorUsername === 'string' && it.authorUsername) return it.authorUsername;
   if (typeof it?.user?.username === 'string' && it.user.username) return it.user.username;
 
-  // 2순위: idMap에서 조회
   const uid =
     typeof it?.userId === 'number' ? it.userId :
     typeof it?.authorId === 'number' ? it.authorId :
@@ -46,7 +42,11 @@ function resolveUsernameFromItem(it: any, idMap: Map<number, string>): string | 
   return undefined;
 }
 
-export default function SearchScreen({ navigation }: any) {
+import type { CommunityNavigationProp } from '../../navigation/types';
+
+type Props = { navigation: CommunityNavigationProp };
+
+export default function SearchScreen({ navigation }: Props) {
   const [q, setQ] = useState('');
   const [scope, setScope] = useState<Scope>('ALL');
   const [limit, setLimit] = useState(20);
@@ -54,14 +54,11 @@ export default function SearchScreen({ navigation }: any) {
   const [err, setErr] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
 
-  // 팔로잉/팔로워에서 수집한 id->username 맵, 그리고 내가 팔로우 중인 집합
   const [idUsernameMap, setIdUsernameMap] = useState<Map<number, string>>(new Map());
   const [followingIds, setFollowingIds] = useState<Set<number | string>>(new Set());
 
-  // 진행 중인 userId -> info 요청 중복 방지용
   const inFlightRef = useRef<Set<number>>(new Set());
 
-  // 1) 내 팔로잉/팔로워 불러와서 id→username 맵 + following 집합 구성
   useEffect(() => {
     (async () => {
       try {
@@ -84,7 +81,6 @@ export default function SearchScreen({ navigation }: any) {
           }
         };
 
-        // 팔로잉은 following 집합에도 추가
         for (const it of Array.isArray(followings) ? followings : []) {
           const id =
             typeof it?.userId === 'number' ? it.userId :
@@ -107,7 +103,6 @@ export default function SearchScreen({ navigation }: any) {
     })();
   }, []);
 
-  // 2) 디바운스 검색
   useEffect(() => {
     if (!q.trim()) {
       setData(null);
@@ -121,12 +116,11 @@ export default function SearchScreen({ navigation }: any) {
       try {
         const d = await searchAll({ keyword: q.trim(), limit });
 
-        // 🔍 디버깅: 실제 응답 구조 확인
         if (Array.isArray(d) && d.length > 0) {
         }
 
         setData(d);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setErr(e?.message ?? '검색 실패');
         setData(null);
       } finally {
@@ -137,14 +131,12 @@ export default function SearchScreen({ navigation }: any) {
     return () => clearTimeout(t);
   }, [q, limit]);
 
-  // 3-a) 현재 검색결과에서 발견되는 (userId, username) 쌍을 맵에 합친다 (직접 포함된 username 우선)
   useEffect(() => {
     if (!Array.isArray(data) || data.length === 0) return;
 
     setIdUsernameMap(prev => {
       const next = new Map(prev);
 
-      // 개별 아이템에서 바로 찾기
       for (const it of data) {
         const uname = resolveUsernameFromItem(it, next);
         const uid =
@@ -156,7 +148,6 @@ export default function SearchScreen({ navigation }: any) {
         if (uid && uname && !next.has(uid)) next.set(uid, uname);
       }
 
-      // 동일 userId 그룹 내에서 누가 username 들고 있으면 전파
       const byUid = new Map<number, { uname?: string }>();
       for (const it of data) {
         const uid =
@@ -187,8 +178,6 @@ export default function SearchScreen({ navigation }: any) {
     });
   }, [data]);
 
-  // 3-b) 남은 userId들에 대해 /api/user/info 로 username 채우기 (최대 20개 동시)
-  // SearchScreen.tsx의 3-b) useEffect 수정
   useEffect(() => {
 
     if (!Array.isArray(data) || data.length === 0) {
@@ -205,7 +194,6 @@ export default function SearchScreen({ navigation }: any) {
 
       if (!uid) continue;
 
-      // ⚠️ 여기서는 현재 상태를 직접 읽지 말고, inFlightRef만 체크
       if (inFlightRef.current.has(uid)) {
         continue;
       }
@@ -252,7 +240,7 @@ export default function SearchScreen({ navigation }: any) {
 
           return next;
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
       } finally {
         need.forEach(id => inFlightRef.current.delete(id));
       }
@@ -261,14 +249,12 @@ export default function SearchScreen({ navigation }: any) {
     return () => {
       cancelled = true;
     };
-  }, [data]); // ✅ idUsernameMap 제거! data만 의존
+  }, [data]);
 
-  // 결과(배열만 온다고 가정) → 스코프에 따라 필터링
   const posts: any[] = useMemo(() => {
     const arr = Array.isArray(data) ? data : [];
     if (scope === 'ALL') return arr;
 
-    // FOLLOWING: 게시글의 작성자(userId or username)가 내 팔로잉에 포함된 것만
     return arr.filter((item) => {
       const uid =
         typeof item?.userId === 'number' ? item.userId :
@@ -282,7 +268,6 @@ export default function SearchScreen({ navigation }: any) {
     });
   }, [data, scope, followingIds, idUsernameMap]);
 
-  // 섹션 하나(Posts)로 그리기
   const sections = useMemo(
     () =>
       posts.length
@@ -291,30 +276,23 @@ export default function SearchScreen({ navigation }: any) {
     [posts, scope]
   );
 
-  // 아이템 렌더
-  const renderItem = ({ item }: any) => {
+  const renderItem={({ item }: { item: any }) => {
     const imgUrl = item?.images?.[0]?.url ?? item?.media?.[0]?.url ?? null;
     const thumb = imgUrl ? absUrl(imgUrl) ?? undefined : undefined;
 
-    // FeedDetail에 맞게 images 형태로 통일
     const images =
       item?.images ??
       (Array.isArray(item?.media)
         ? item.media.map((m: any) => ({ url: m?.url, ord: m?.ord, type: m?.type }))
         : []);
 
-    // userId → username 치환
     const resolvedUsername = resolveUsernameFromItem(item, idUsernameMap);
 
-    // 표시 라인: username이 있으면 username 사용, 없으면 "작성자 정보 없음"
     const showLine = resolvedUsername
       ? `@${resolvedUsername}`
       : '작성자 정보 없음';
 
-    // 작성자 칩 onPress
-    // SearchScreen.tsx의 goToAuthor 수정
     const goToAuthor = () => {
-      // userId 추출
       const uid =
         typeof item?.userId === 'number' ? item.userId :
         typeof item?.authorId === 'number' ? item.authorId :
@@ -322,13 +300,11 @@ export default function SearchScreen({ navigation }: any) {
         undefined;
 
       if (resolvedUsername && uid) {
-        // ✅ username과 userId만 전달, UserRoom에서 API 호출
         navigation.navigate('UserRoom', {
           username: resolvedUsername,
           userId: uid,
         });
       } else if (resolvedUsername) {
-        // userId가 없으면 FeedDetail로
         navigation.navigate('FeedDetail', {
           feedId: item?.id,
           content: item?.content,
@@ -359,10 +335,8 @@ export default function SearchScreen({ navigation }: any) {
             {item?.content ?? '(내용 없음)'}
           </Text>
 
-          {/* username 우선 표시 */}
           <Text style={s.subTxt}>{showLine}</Text>
 
-          {/* 작성자 칩 (탭 시 UserRoom으로) */}
           {resolvedUsername && (
             <TouchableOpacity onPress={goToAuthor} style={s.authorChip} activeOpacity={0.8}>
               <Text style={s.authorTxt}>{showLine}</Text>
@@ -375,7 +349,6 @@ export default function SearchScreen({ navigation }: any) {
 
   return (
     <View style={s.screen}>
-      {/* 상단 검색바 */}
       <View style={s.searchBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -403,7 +376,6 @@ export default function SearchScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* 스코프 탭: ALL / FOLLOWING */}
       <View style={s.scopeRow}>
         {SCOPES.map((sc) => (
           <TouchableOpacity
@@ -419,11 +391,9 @@ export default function SearchScreen({ navigation }: any) {
         ))}
       </View>
 
-      {/* 상태 */}
       {loading ? <ActivityIndicator style={{ marginTop: 16 }} /> : null}
       {err ? <Text style={s.errTxt}>{err}</Text> : null}
 
-      {/* 결과 */}
       <SectionList
         sections={sections}
         keyExtractor={(_, i) => String(i)}
@@ -445,7 +415,6 @@ export default function SearchScreen({ navigation }: any) {
         }
       />
 
-      {/* 더보기 (limit 증가: 서버에 limit만 늘려 다시 검색) */}
       {sections.length > 0 && (
         <TouchableOpacity
           style={s.moreBtn}
@@ -462,7 +431,6 @@ export default function SearchScreen({ navigation }: any) {
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
 
-  // 검색바
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -484,7 +452,6 @@ const s = StyleSheet.create({
   clearBtn: { paddingLeft: 6, paddingVertical: 4 },
   clearTxt: { fontSize: 22, color: '#9CA3AF' },
 
-  // 스코프
   scopeRow: {
     flexDirection: 'row',
     paddingHorizontal: 10,
@@ -503,7 +470,6 @@ const s = StyleSheet.create({
   scopeTxt: { fontSize: 12, color: '#4B5563', fontWeight: '700' },
   scopeTxtOn: { color: '#fff' },
 
-  // 리스트
   sectionHeader: {
     paddingHorizontal: 14,
     paddingTop: 12,
@@ -520,19 +486,15 @@ const s = StyleSheet.create({
   },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E7EB', marginLeft: 14 },
 
-  // 썸네일
   thumb: { width: 60, height: 60, borderRadius: 8, marginRight: 12, backgroundColor: '#E5E7EB' },
   thumbFallback: { backgroundColor: '#0F172A' },
 
-  // 텍스트
   titleTxt: { fontSize: 14, color: '#111827', fontWeight: '700' },
   subTxt: { fontSize: 12, color: '#6B7280', marginTop: 2 },
 
-  // 상태
   empty: { textAlign: 'center', paddingVertical: 24, color: '#9CA3AF' },
   errTxt: { textAlign: 'center', marginTop: 12, color: '#EF4444' },
 
-  // 더보기 버튼
   moreBtn: {
     position: 'absolute',
     bottom: 14,
@@ -545,7 +507,6 @@ const s = StyleSheet.create({
   },
   moreTxt: { color: '#fff', fontWeight: '800' },
 
-  // 작성자 칩
   authorChip: {
     alignSelf: 'flex-start',
     marginTop: 4,

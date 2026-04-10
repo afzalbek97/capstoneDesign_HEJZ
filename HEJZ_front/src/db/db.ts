@@ -1,7 +1,6 @@
 // src/db/db.ts
 import SQLite from 'react-native-sqlite-storage';
 
-// 성능/로그 설정(원하면 끄기 가능)
 SQLite.enablePromise(true);
 
 export async function getDB() {
@@ -13,7 +12,6 @@ export async function getDB() {
 async function init(db: SQLite.SQLiteDatabase) {
   await db.executeSql('PRAGMA foreign_keys = ON;');
 
-  // 피드 테이블
   await db.executeSql(`
     CREATE TABLE IF NOT EXISTS feeds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +20,6 @@ async function init(db: SQLite.SQLiteDatabase) {
     );
   `);
 
-  // 이미지 테이블
   await db.executeSql(`
     CREATE TABLE IF NOT EXISTS feed_images (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

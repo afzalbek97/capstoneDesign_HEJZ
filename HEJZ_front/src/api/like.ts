@@ -9,7 +9,7 @@ export async function getAuthToken(): Promise<string | null> {
   return null;
 }
 
-export async function likeFeed(feedId: number): Promise<any> { // ✅ feedId: number 추가
+export async function likeFeed(feedId: number): Promise<any> {
     const token = await getAuthToken();
 
     const res = await fetch(`${BASE_URL}/api/feeds/like/feed`, {

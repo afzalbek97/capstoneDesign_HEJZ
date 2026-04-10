@@ -17,7 +17,6 @@ import {
 import { getSongList, type Song } from '../../api/song';
 import RNSoundPlayer from 'react-native-sound-player';
 
-// 감정 목록
 const EMOTIONS = [
   { label: '행복', value: '행복' },
   { label: '슬픔', value: '슬픔' },
@@ -34,7 +33,6 @@ const EMOTIONS = [
   { label: '차분함', value: '차분함' },
 ];
 
-// 장르 목록
 const GENRES = [
   { label: 'Breakdance', value: 'Breakdance' },
   { label: 'Pop', value: 'Pop' },
@@ -48,7 +46,11 @@ const GENRES = [
   { label: 'Ballet Jazz', value: 'Ballet_Jazz' },
 ];
 
-const DanceScreen = ({ navigation }: any) => {
+import type { DanceNavigationProp } from '../../navigation/types';
+
+type Props = { navigation: DanceNavigationProp };
+
+const DanceScreen = ({ navigation }: Props) => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSongId, setSelectedSongId] = useState("");
@@ -58,14 +60,11 @@ const DanceScreen = ({ navigation }: any) => {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedPlainLyrics, setSelectedPlainLyrics] = useState('');
   const [selectedLyricsJsonRaw, setSelectedLyricsJsonRaw] = useState('');
-  // 재생 상태
   const [playingSongId, setPlayingSongId] = useState<string | null>(null);
 
-  // 모달 상태
   const [emotionModalVisible, setEmotionModalVisible] = useState(false);
   const [genreModalVisible, setGenreModalVisible] = useState(false);
 
-  // 노래 목록 가져오기
   useEffect(() => {
     const fetchSongs = async () => {
       try {
@@ -78,7 +77,7 @@ const DanceScreen = ({ navigation }: any) => {
         } else {
           Alert.alert('알림', 'API에서 노래 목록을 가져올 수 없습니다.');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         Alert.alert(
           '오류',
           '노래 목록을 불러오는데 실패했습니다.\n\n' +
@@ -93,7 +92,6 @@ const DanceScreen = ({ navigation }: any) => {
     fetchSongs();
   }, []);
 
-  // 컴포넌트 언마운트 시 음악 정지
   useEffect(() => {
     return () => {
       try {
@@ -106,14 +104,11 @@ const DanceScreen = ({ navigation }: any) => {
   const handlePlayPause = async (song: Song) => {
     try {
       if (playingSongId === song.id) {
-        // 이미 재생 중이면 정지
         RNSoundPlayer.stop();
         setPlayingSongId(null);
       } else {
-        // 다른 노래 재생
-        RNSoundPlayer.stop(); // 이전 노래 정지
+        RNSoundPlayer.stop();
 
-        // sourceAudioUrl 우선, 없으면 다른 URL 사용
         const audioUrl = song.sourceAudioUrl || song.streamAudioUrl || song.filepath;
 
         if (!audioUrl) {
@@ -131,14 +126,13 @@ const DanceScreen = ({ navigation }: any) => {
 
         setPlayingSongId(song.id);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       Alert.alert('재생 오류', '오디오를 재생할 수 없습니다.');
       setPlayingSongId(null);
     }
   };
 
   const handleNavigate = () => {
-    // 재생 중인 음악 정지
     try {
       RNSoundPlayer.stop();
       setPlayingSongId(null);
@@ -192,7 +186,6 @@ const DanceScreen = ({ navigation }: any) => {
         </View>
       </TouchableOpacity>
 
-      {/* 재생 버튼 */}
       <TouchableOpacity
 
         onPress={() => handlePlayPause(item)}
@@ -272,7 +265,6 @@ const DanceScreen = ({ navigation }: any) => {
             }
           />
 
-          {/* 감정 선택 */}
           <Text style={styles.sectionHeader}>감정을 선택해주세요</Text>
           <TouchableOpacity
             style={styles.picker}
@@ -284,7 +276,6 @@ const DanceScreen = ({ navigation }: any) => {
             <Text style={styles.pickerIcon}>▼</Text>
           </TouchableOpacity>
 
-          {/* 장르 선택 */}
           <Text style={styles.sectionHeader}>장르를 선택해주세요</Text>
           <TouchableOpacity
             style={styles.picker}
@@ -304,7 +295,6 @@ const DanceScreen = ({ navigation }: any) => {
         </View>
       </ScrollView>
 
-      {/* 감정 선택 모달 */}
       <Modal
         visible={emotionModalVisible}
         transparent={true}
@@ -328,7 +318,6 @@ const DanceScreen = ({ navigation }: any) => {
         </View>
       </Modal>
 
-      {/* 장르 선택 모달 */}
       <Modal
         visible={genreModalVisible}
         transparent={true}
@@ -469,7 +458,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#999',
   },
-  // 모달 스타일
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

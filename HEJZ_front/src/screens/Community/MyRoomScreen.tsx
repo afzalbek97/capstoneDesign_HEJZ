@@ -7,23 +7,19 @@ import {  useFocusEffect, RouteProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../api/baseUrl';
 
-// ===== feed API (default / named 어떤 export든 안전하게) =====
 import FeedApiDefault, * as FeedApiNS from '../../api/feed';
 const fetchMyFeedsSafe =
   (FeedApiNS as any).fetchMyFeeds ?? (FeedApiDefault as any)?.fetchMyFeeds;
 const deleteFeedSafe =
   (FeedApiNS as any).deleteFeed ?? (FeedApiDefault as any)?.deleteFeed;
 
-// ===== user API (default / named 어떤 export든 안전하게) =====
 import UserApiDefault, * as UserApiNS from '../../api/user';
 const fetchMyProfileSafe =
   (UserApiNS as any).fetchMyProfile ?? (UserApiDefault as any)?.fetchMyProfile;
 
-// ===== follow (fetch 기반) =====
 import FollowButton from '../../components/FollowButton';
 import { getFollowers, getFollowings } from '../../api/follow';
 
-// ====== assets (require + null 가드) ======
 const USTAR_BLACK = (() => { try { return require('../../assets/icon/U-STAR_black.png'); } catch { return null; } })();
 const ICON_MUSIC  = (() => { try { return require('../../assets/icon/music.png'); } catch { return null; } })();
 const ICON_SHORT  = (() => { try { return require('../../assets/icon/short.png'); } catch { return null; } })();
@@ -92,18 +88,15 @@ const SK = {
   following: 'user.following',
 } as const;
 
-export default function MyProfileScreen({navigation, route}:any) {
+export default function MyProfileScreen({ navigation, route }: { navigation: any; route: any }) {
 
 
-  // === 프로필 상태 (route → API → local 순서로 채움)
   const [me, setMe] = useState<Profile | null>(null);
 
-  // === 내/남 프로필 분기 & 카운트
   const [isMe, setIsMe] = useState<boolean>(true);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
 
-  // === 피드 상태
   const [items, setItems] = useState<FeedItemDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -118,14 +111,12 @@ export default function MyProfileScreen({navigation, route}:any) {
   const lastPageTsRef = useRef(0);
   const now = () => Date.now();
 
-  // ===== 초기 로드: 프로필 → 카운트 → 피드 =====
   useFocusEffect(
     useCallback(() => {
       if (didInitRef.current) return;
       didInitRef.current = true;
 
       const loadProfile = async () => {
-        // 1) route.params 우선
         const fromParams: Profile | null = route.params
           ? {
               username: route.params.username ?? '',
@@ -141,7 +132,6 @@ export default function MyProfileScreen({navigation, route}:any) {
           setMe(fromParams);
         }
 
-        // 2) /me API 시도
         let mapped: Profile | null = null;
         try {
           if (!fetchMyProfileSafe) throw new Error('fetchMyProfile API 없음');
@@ -156,7 +146,6 @@ export default function MyProfileScreen({navigation, route}:any) {
           };
           setMe(mapped);
 
-          // 캐시 저장 (실패 무시)
           await AsyncStorage.multiSet([
             [SK.username, mapped.username ?? ''],
             [SK.nickname, mapped.nickname ?? ''],
@@ -165,10 +154,9 @@ export default function MyProfileScreen({navigation, route}:any) {
             [SK.followers, String(mapped.followers ?? 0)],
             [SK.following, String(mapped.following ?? 0)],
           ]);
-        } catch (e: any) {
+        } catch (e: unknown) {
         }
 
-        // 3) API 실패 시 AsyncStorage fallback
         if (!mapped) {
           try {
             const [u, n, b, a, f1, f2] = await AsyncStorage.multiGet([
@@ -186,7 +174,6 @@ export default function MyProfileScreen({navigation, route}:any) {
           } catch {}
         }
 
-        // 4) 내/남 프로필 판별 + 카운트 갱신
         if (mapped) {
           try {
             const myU = (await AsyncStorage.getItem(SK.username)) || mapped.username;
@@ -195,7 +182,6 @@ export default function MyProfileScreen({navigation, route}:any) {
             setIsMe(itsMe);
 
             if (itsMe) {
-              // 내 프로필이면 서버에서 최신 카운트
               const [followersList, followingsList] = await Promise.all([
                 getFollowers().catch(() => []),
                 getFollowings().catch(() => []),
@@ -203,7 +189,6 @@ export default function MyProfileScreen({navigation, route}:any) {
               setFollowerCount(followersList.length);
               setFollowingCount(followingsList.length);
             } else {
-              // 남의 프로필이면 파라미터 or mapped 값 사용
               setFollowerCount(route.params?.followers ?? (mapped.followers ?? 0));
               setFollowingCount(route.params?.following ?? (mapped.following ?? 0));
             }
@@ -221,7 +206,6 @@ export default function MyProfileScreen({navigation, route}:any) {
     }, [route.params])
   );
 
-  // ===== 피드 로드 =====
   const load = useCallback(async (reset = false) => {
   if (loadingRef.current) return;
   loadingRef.current = true;
@@ -234,10 +218,8 @@ export default function MyProfileScreen({navigation, route}:any) {
 
     const data = await fetchMyFeedsSafe({ limit: 24, cursor: cur });
     
-    // ✅ 원본 데이터 확인
     
     const safe: FeedItemDto[] = (data?.items ?? []).map((it: any) => {
-      // ✅ 각 아이템의 id 확인
       
       return {
         ...it,
@@ -253,7 +235,7 @@ export default function MyProfileScreen({navigation, route}:any) {
     setCursor(nextCur);
     setHasMore(Boolean(nextCur));
     lastCursorRef.current = nextCur;
-  } catch (e: any) {
+  } catch (e: unknown) {
     Alert.alert('알림', e?.message ?? '요청 실패');
     setHasMore(false);
   } finally {
@@ -270,7 +252,6 @@ export default function MyProfileScreen({navigation, route}:any) {
       setCursor(null);
       setHasMore(true);
 
-      // 내 프로필일 때 카운트도 리프레시
       if (isMe) {
         const [followersList, followingsList] = await Promise.all([
           getFollowers().catch(() => []),
@@ -313,7 +294,7 @@ export default function MyProfileScreen({navigation, route}:any) {
             if (!deleteFeedSafe) throw new Error('deleteFeed API 없음');
             await deleteFeedSafe(feedId);
             setItems(prev => prev.filter(f => f.id !== feedId));
-          } catch (e: any) {
+          } catch (e: unknown) {
             Alert.alert('알림', e?.message ?? '삭제 실패');
           }
         },
@@ -329,10 +310,9 @@ export default function MyProfileScreen({navigation, route}:any) {
 
     const feedId = item.id ?? (item as any).feedId ?? (item as any).feed_id;
   
-    // ✅ id 확인 로그
     
     if (!feedId) {
-      return null; // id가 없으면 렌더링 안 함
+      return null;
     }
 
     return (
@@ -367,7 +347,6 @@ export default function MyProfileScreen({navigation, route}:any) {
     );
   };
 
-  // 표시용 안전값
   const username = me?.username ?? 'username';
   const nickname = me?.nickname ?? 'nickname';
   const bio = me?.bio ?? '';
@@ -378,7 +357,6 @@ export default function MyProfileScreen({navigation, route}:any) {
       <SafeAreaView />
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* AppBar: username 표시 */}
       <View style={s.appbar}>
         <View style={s.appbarLeft}>
           {USTAR_BLACK ? (
@@ -423,7 +401,6 @@ export default function MyProfileScreen({navigation, route}:any) {
             <Text style={s.meta}>팔로워 {followerCount} · 팔로잉 {followingCount} · Works {items.length}</Text>
           </View>
 
-          {/* 내 프로필이면 편집/새 글, 남 프로필이면 Follow 버튼 */}
           {isMe ? (
             <View style={s.btnCol}>
               <TouchableOpacity style={s.editBtn} onPress={() => (navigation as any).navigate('EditProfile')}>

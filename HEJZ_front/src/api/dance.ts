@@ -12,8 +12,8 @@ export type LyricsRequest = {
 };
 
 export type LyricsGroupRecommendation = {
-  lyricsGroup: string;            // 2줄 가사 묶음
-  analyzedEmotion: string;        // 분석된 감정
+  lyricsGroup: string;
+  analyzedEmotion: string;
   selectedEmotionMotion: string | null;
   selectedGenreMotion: string | null;
   analyzedMotion1: string | null;
@@ -24,23 +24,21 @@ export type IntegratedRecommendationResponse = {
   lyricsRecommendations: LyricsGroupRecommendation[];
 };
 
-// ✅ 타이밍 정보 추가
 export type SelectionGroupDto = {
   lyricsGroup: string;
   selectedMotionIds: string[];
-  startTime?: number;  // 구간 시작 시간
-  endTime?: number;    // 구간 끝 시간
+  startTime?: number;
+  endTime?: number;
 };
 
 export type SelectionGroupResponseDto = {
   lyricsGroup: string;
   selectedMotionIds: string[];
   videoUrls: string[];
-  startTime?: number;  // 저장된 시작 시간
-  endTime?: number;    // 저장된 끝 시간
+  startTime?: number;
+  endTime?: number;
 };
 
-// ✅ 곡별로 저장하기 위한 타입
 export type SongSelectionDto = {
   songId: string;
   songTitle: string;
@@ -64,7 +62,7 @@ async function getAuthHeaders() {
 export function normalizePlainLyrics(raw: string) {
   return (raw || '')
     .replace(/\r\n/g, '\n')
-    .replace(/\[(.*?)\]\n?/g, '') // 섹션 태그 제거
+    .replace(/\[(.*?)\]\n?/g, '')
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean)
@@ -171,11 +169,9 @@ export async function saveSongSelection(
 ): Promise<string> {
   try {
 
-    // AsyncStorage에 곡별로 저장
     const key = `song_selection_${songSelection.songId}`;
     await AsyncStorage.setItem(key, JSON.stringify(songSelection));
 
-    // 저장된 곡 목록도 업데이트
     const savedSongsJson = await AsyncStorage.getItem('saved_songs_list');
     const savedSongs: string[] = savedSongsJson ? JSON.parse(savedSongsJson) : [];
 
@@ -185,7 +181,6 @@ export async function saveSongSelection(
     }
 
 
-    // 서버에도 motionIds만 저장
     const allMotionIds = songSelection.selections
       .flatMap(sel => sel.selectedMotionIds)
       .filter(Boolean);
@@ -198,7 +193,7 @@ export async function saveSongSelection(
     }
 
     return '저장 완료';
-  } catch (e: any) {
+  } catch (e: unknown) {
     throw new Error(e?.message || '저장 중 오류가 발생했습니다.');
   }
 }
@@ -218,7 +213,7 @@ export async function getSongSelection(songId: string): Promise<SongSelectionDto
 
     const json = JSON.parse(data);
     return json as SongSelectionDto;
-  } catch (e: any) {
+  } catch (e: unknown) {
     return null;
   }
 }
@@ -260,14 +255,12 @@ export async function getMotionUrl(motionId: string): Promise<string> {
     throw new Error(`HTTP ${res.status}: ${text}`);
   }
 
-  // 응답이 http로 시작하면 순수 URL 문자열
   const trimmedText = text.trim().replace(/^["']|["']$/g, '');
 
   if (trimmedText.startsWith('http')) {
     return trimmedText;
   }
 
-  // JSON 파싱 시도
   try {
     const json = JSON.parse(text);
     if (json.videoUrl?.startsWith('http')) {
@@ -291,7 +284,6 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
 
 
   try {
-    // 백엔드 API 사용 시도
     const res = await fetch(`${BASE_URL}/api/emotion/selections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
@@ -315,7 +307,6 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
   } catch (e) {
   }
 
-  // 폴백: 개별 조회
   const map = new Map<string, string>();
   await Promise.all(
     motionIds.map(async (mid) => {
@@ -336,8 +327,6 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
 export async function saveEmotionSelections(
   selections: SelectionGroupDto[]
 ): Promise<string> {
-  // 이 함수는 더 이상 사용하지 않음
-  // saveFinalSelections 사용 권장
   const motionIds = selections.flatMap(sel => sel.selectedMotionIds).filter(Boolean);
   return saveFinalSelections(motionIds);
 }
@@ -346,14 +335,12 @@ export async function saveEmotionSelections(
  * 10) 저장된 선택 조회 (기존 - 사용 안함)
  * ========================= */
 export async function getAllEmotionSelections(): Promise<SelectionGroupResponseDto[]> {
-  // 로컬 스토리지에서 조회
   const allSongs = await getAllSavedSongs();
 
   const results: SelectionGroupResponseDto[] = [];
 
   for (const song of allSongs) {
     for (const sel of song.selections) {
-      // URL 조회
       const urlMap = await getMotionUrls(sel.selectedMotionIds);
       const videoUrls = sel.selectedMotionIds.map(id => urlMap.get(id) || '').filter(Boolean);
 

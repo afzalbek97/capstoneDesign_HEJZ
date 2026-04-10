@@ -5,24 +5,21 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useUser } from '../../context/UserContext';
-import { Image } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const dummyShorts = [
-  { id: '1', title: ' 감성 힙합 숏츠' },
-  { id: '2', title: '안무 영상' },
-  { id: '3', title: ' 감정 댄스' },
-];
+type Props = {
+  navigation: NativeStackNavigationProp<any>;
+};
 
-// 💡 팔로잉 / 팔로워 mock data
-const followers = 128;
-const following = 54;
+type ShortItem = { id: string };
 
-const FeedScreen = ({ navigation }: any) => {
-  const { user } = useUser(); // 전역 사용자 정보 받아오기
+const FeedScreen = ({ navigation }: Props) => {
+  const { user } = useUser();
 
-  const renderItem = ({ item }: { item: { id: string; title: string } }) => (
+  const renderItem = ({ item }: { item: ShortItem }) => (
     <View style={styles.gridItem}>
       <View style={styles.thumbnail} />
     </View>
@@ -30,7 +27,6 @@ const FeedScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      {/* 옵션 메뉴 버튼 */}
       <TouchableOpacity
         style={styles.menuButton}
         onPress={() => navigation.navigate('MyPageOptions')}
@@ -38,7 +34,6 @@ const FeedScreen = ({ navigation }: any) => {
         <Text style={styles.menuText}>⋮</Text>
       </TouchableOpacity>
 
-      {/* 사용자 프로필 정보 */}
       <View style={styles.profileBox}>
         {user.profileImage ? (
           <Image source={user.profileImage} style={styles.avatar} />
@@ -48,8 +43,7 @@ const FeedScreen = ({ navigation }: any) => {
         <View style={{ flex: 1 }}>
           <Text style={styles.nickname}>{user.name}</Text>
           <Text style={styles.username}>@{user.username}</Text>
-          <Text style={styles.followInfo}>팔로잉 {following} · 팔로워 {followers}</Text>
-          <Text style={styles.bio}>{user.bio || '소개가 없습니다.'}</Text>
+          <Text style={styles.bio}>{user.bio}</Text>
         </View>
       </View>
 
@@ -57,12 +51,11 @@ const FeedScreen = ({ navigation }: any) => {
         style={styles.editButton}
         onPress={() => navigation.navigate('EditProfile')}
       >
-        <Text style={styles.editButtonText}>내 정보 수정</Text>
+        <Text style={styles.editButtonText}>Edit Profile</Text>
       </TouchableOpacity>
 
-      {/* 영상 리스트 */}
       <FlatList
-        data={dummyShorts}
+        data={[]}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         numColumns={3}
@@ -120,11 +113,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
-  },
-  followInfo: {
-    fontSize: 13,
-    color: '#777',
-    marginBottom: 6,
   },
   bio: {
     fontSize: 14,

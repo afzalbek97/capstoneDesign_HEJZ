@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 
-// 댓글 단 영상만 전달받는 구조라고 가정
-const MyCommentsScreen = ({ route }: any) => {
+const MyCommentsScreen = ({ route }: { route: any }) => {
   const commentedShorts = route?.params?.commentedShorts ?? [];
 
   return (

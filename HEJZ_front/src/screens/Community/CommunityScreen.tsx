@@ -19,7 +19,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchUserInfoById } from '../../api/user';
-import { fetchTimeline, fetchGlobal, getFeed } from '../../api/feed'; // ✅ getFeed 추가
+import { fetchTimeline, fetchGlobal, getFeed } from '../../api/feed';
 import type { FeedItemDto } from '../../api/types/feed';
 import { BASE_URL } from '../../api/baseUrl';
 import { createComment, getCommentsByFeed, deleteComment, type CommentDto } from '../../api/comment';
@@ -41,7 +41,6 @@ function normalizeAbsUrl(u?: string | null) {
   return /^https?:\/\//i.test(t) ? t : `${BASE_URL}${t.startsWith('/') ? '' : '/'}${t}`;
 }
 function pickFirstMediaUrlLocal(item: any): string | null {
-  // media 우선, 없으면 images 확인
   const arr = Array.isArray(item?.media)
     ? item.media
     : Array.isArray(item?.images)
@@ -60,7 +59,7 @@ function pickFirstMediaUrlLocal(item: any): string | null {
 }
 
 // =============================================================
-export default function CommunityScreen({ navigation }: any) {
+export default function CommunityScreen({ navigation }: { navigation: any }) {
   const [tab, setTab] = useState<'FOLLOWING' | 'EXPLORE'>('FOLLOWING');
 
   const [items, setItems] = useState<FeedItemDto[]>([]);
@@ -117,27 +116,24 @@ export default function CommunityScreen({ navigation }: any) {
         if (resp.items.length > 0) {
         }
 
-        // ✅ 각 피드의 상세 정보를 가져와서 미디어 정보 추가
         const enrichedItems = await Promise.all(
           resp.items.map(async (item: any) => {
-            // feedId 유효성 검사
             const feedId = Number(item.id);
 
             if (!Number.isFinite(feedId) || feedId <= 0) {
-              return item; // 유효하지 않으면 원본 그대로 반환
+              return item;
             }
 
             try {
               const feedDetail = await getFeed(feedId);
 
-              // 상세 정보의 images/media를 원본 아이템에 추가
               return {
                 ...item,
                 images: (feedDetail as any).images || (feedDetail as any).media || item.images || [],
                 media: (feedDetail as any).media || (feedDetail as any).images || item.media || null,
               };
-            } catch (e: any) {
-              return item; // 실패하면 원본 아이템 그대로 사용
+            } catch (e: unknown) {
+              return item;
             }
           })
         );
@@ -148,7 +144,7 @@ export default function CommunityScreen({ navigation }: any) {
         setItems((prev) => (reset ? filtered : [...prev, ...filtered]));
         setCursor(resp.nextCursor);
         setHasMore(Boolean(resp.nextCursor));
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (e?.message === 'RATE_LIMIT') {
           Alert.alert('잠시 후 다시 시도', '요청이 너무 많아요. 1분 후에 다시 시도해줘!');
         } else {
@@ -234,7 +230,7 @@ export default function CommunityScreen({ navigation }: any) {
       setLoadingComments(true);
       const list = await getCommentsByFeed(feedId);
       setCommentList(list);
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('알림', e?.message ?? '댓글을 불러오지 못했어요.');
     } finally {
       setLoadingComments(false);
@@ -270,7 +266,7 @@ export default function CommunityScreen({ navigation }: any) {
             : it
         )
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('실패', e?.message ?? '댓글 등록에 실패했어요.');
     } finally {
       setSending(false);
@@ -296,7 +292,7 @@ export default function CommunityScreen({ navigation }: any) {
                 )
               );
             }
-          } catch (e: any) {
+          } catch (e: unknown) {
             Alert.alert('실패', e?.message ?? '댓글 삭제에 실패했어요.');
           }
         }
@@ -345,11 +341,9 @@ export default function CommunityScreen({ navigation }: any) {
   const renderItem = ({ item, index }: { item: FeedItemDto; index: number }) => {
     const playing = index === activeIndex;
 
-    // ✅ 실제 피드 미디어 URL 가져오기
     const mediaUrl = pickFirstMediaUrlLocal(item);
     const isVideo = isVideoUrl(mediaUrl);
 
-    // 🔍 디버깅 로그
 
     const rawUserId =
       (item as any)?.userId ??
@@ -374,11 +368,9 @@ export default function CommunityScreen({ navigation }: any) {
         style={styles.page}
         activeOpacity={1}
         onPress={() => {
-          // ✅ 피드 클릭시 FeedDetailScreen으로 이동
           navigation.navigate('FeedDetail' as never, { feedId: (item as any).id } as never);
         }}
       >
-        {/* ✅ 실제 피드의 비디오/이미지 재생 */}
         {mediaUrl ? (
           isVideo ? (
             <Video

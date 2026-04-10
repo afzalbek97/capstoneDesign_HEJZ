@@ -4,7 +4,7 @@ type UserInfo = {
   name: string;
   bio: string;
   username: string;
-  profileImage: any;
+  profileImage: string | null;
 };
 
 const defaultUser: UserInfo = {

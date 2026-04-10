@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import BottomBar from './BottomBar';
 
-const SelectScreen = ({ navigation }: any) => {
+import type { RootNavigationProp } from '../navigation/types';
+
+type Props = { navigation: RootNavigationProp };
+
+const SelectScreen = ({ navigation }: Props) => {
   return (
     <View style={styles.screen}>
       <ImageBackground
@@ -18,7 +22,6 @@ const SelectScreen = ({ navigation }: any) => {
         resizeMode="cover"
       >
         <View style={styles.container}>
-          {/* 상단 이미지 버튼 두 개 */}
           <View style={styles.row}>
             <TouchableOpacity
               style={styles.iconWrapper}
@@ -43,7 +46,6 @@ const SelectScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* 하단 커뮤니티 아이콘 */}
           <TouchableOpacity
             style={styles.communityButton}
             onPress={() => navigation.navigate('Community')}
@@ -57,7 +59,6 @@ const SelectScreen = ({ navigation }: any) => {
         </View>
       </ImageBackground>
 
-      {/* ✅ 하단 바 추가 */}
       <View style={{ height: 60 }} />
       <BottomBar />
     </View>

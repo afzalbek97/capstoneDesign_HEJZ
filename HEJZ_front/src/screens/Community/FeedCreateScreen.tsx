@@ -1,4 +1,3 @@
-// screens/FeedCreateScreen.tsx - 권한 문제 해결 버전
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Image,
@@ -51,9 +50,7 @@ export default function FeedCreateScreen() {
     if (Platform.OS !== 'android') return true;
 
     try {
-      // Android 13 (API 33) 이상
       if (Platform.Version >= 33) {
-        // 먼저 현재 권한 상태 확인
         const checkImage = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
         );
@@ -62,19 +59,16 @@ export default function FeedCreateScreen() {
         );
 
 
-        // 이미 권한이 있으면 바로 통과
         if (checkImage || checkVideo) {
           return true;
         }
 
-        // 권한 요청
         const statuses = await PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
         ]);
 
 
-        // 하나라도 granted면 OK
         const granted = Object.values(statuses).some(
           v => v === PermissionsAndroid.RESULTS.GRANTED
         );
@@ -95,7 +89,6 @@ export default function FeedCreateScreen() {
 
       // Android 10-12 (API 29-32)
       if (Platform.Version >= 29) {
-        // Scoped Storage: 권한 체크
         const hasPermission = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
         );
@@ -122,7 +115,6 @@ export default function FeedCreateScreen() {
         return true;
       }
 
-      // Android 9 이하 (API 28 이하)
       const hasPermission = await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
       );
@@ -199,7 +191,6 @@ export default function FeedCreateScreen() {
     try {
       setBusy(true);
 
-      // 1) 파일 업로드
       const urls: string[] = [];
       for (const a of assets) {
         if (!a.uri) continue;
@@ -210,7 +201,6 @@ export default function FeedCreateScreen() {
         urls.push(url);
       }
 
-      // 2) 피드 생성
       const payload: any = {
         content,
         imageUrls: urls,
@@ -223,7 +213,7 @@ export default function FeedCreateScreen() {
       Alert.alert('완료', '피드가 등록되었습니다.');
       // @ts-ignore
       nav.navigate('MyRoom', { refresh: Date.now() });
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('업로드 실패', e?.message || '오류가 발생했어요.');
     } finally {
       setBusy(false);

@@ -1,4 +1,3 @@
-// 커뮤니티 관련 스크린 관리 스택
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 

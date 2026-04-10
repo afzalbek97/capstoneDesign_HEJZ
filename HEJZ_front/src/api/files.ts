@@ -24,7 +24,6 @@ export async function uploadFile(file: Picked, timeoutMs = 300000): Promise<stri
 
   const token = await getToken();
 
-  // 🔧 타임아웃 컨트롤러 추가
   const controller = new AbortController();
   const timeout = setTimeout(() => {
     controller.abort();
@@ -37,7 +36,7 @@ export async function uploadFile(file: Picked, timeoutMs = 300000): Promise<stri
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: form,
-      signal: controller.signal, // 🔧 타임아웃 시그널 추가
+      signal: controller.signal,
     });
 
     const elapsed = Date.now() - startTime;

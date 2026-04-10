@@ -12,7 +12,6 @@ import { useUser } from '../../context/UserContext';
 import { BASE_URL } from '../../api/baseUrl';
 import { fetchMyProfile, cacheMyProfile, SK } from '../../api/user';
 
-// ===== fallback 이미지 =====
 const FALLBACK_AVATAR = (() => {
   try { return require('../../assets/icon/cat.png'); } catch { return null as any; }
 })();
@@ -20,7 +19,7 @@ const FALLBACK_AVATAR = (() => {
 // ===== helper =====
 function absUrl(u?: string | null) {
   if (!u) return null;
-  if (/^https?:\/\//i.test(u) || /^file:\/\//i.test(u)) return u; // 로컬/원격 다 허용
+  if (/^https?:\/\
   return `${BASE_URL}${u}`;
 }
 
@@ -31,12 +30,10 @@ export default function EditProfileScreen() {
   const [nickname, setNickname] = useState(user?.name ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
 
-  // 서버 없이도 쓰는 avatar 경로(로컬 file:// 또는 기존 상대/절대)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarLocalPreview, setAvatarLocalPreview] = useState<string | null>(null); // 선택 직후 미리보기
+  const [avatarLocalPreview, setAvatarLocalPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 초기 로드: 서버 → 캐시 → 컨텍스트
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -66,13 +63,12 @@ export default function EditProfileScreen() {
     return () => { mounted = false; };
   }, []);
 
-  // 갤러리에서 선택 → 앱 내부 저장소로 복사 → 로컬 경로(file://…) 저장
   const handleChangeProfileImage = async () => {
     const options: ImageLibraryOptions = {
       mediaType: 'photo',
       selectionLimit: 1,
       quality: 0.9,
-      includeBase64: true, // content:// 대비 안전하게 저장하기 위해 base64도 받자
+      includeBase64: true,
     };
     const result = await launchImageLibrary(options);
     if (result.didCancel) return;
@@ -90,27 +86,22 @@ export default function EditProfileScreen() {
 
     try {
       setLoading(true);
-      // 저장 파일명/경로 준비
       const ext = (asset.fileName?.split('.').pop() || 'jpg').toLowerCase();
       const fileName = `avatar_${Date.now()}.${ext}`;
-      const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`; // Android/iOS 모두 앱 전용 폴더
+      const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
       if (asset.base64) {
-        // base64가 있으면 그대로 저장 (content:// 이슈 회피)
         await RNFS.writeFile(destPath, asset.base64, 'base64');
       } else if (/^file:\/\//i.test(srcUri)) {
-        // 파일 경로면 복사
         await RNFS.copyFile(srcUri.replace('file://', ''), destPath);
       } else {
-        // content:// 등 복잡한 스킴은 실패 안내
         throw new Error('content URI를 직접 복사할 수 없습니다. includeBase64 옵션을 활성화하세요.');
       }
 
       const fileUri = `file://${destPath}`;
-      setAvatarLocalPreview(fileUri); // 즉시 미리보기
-      setAvatarUrl(fileUri);          // 실제 저장값도 이걸로
+      setAvatarLocalPreview(fileUri);
+      setAvatarUrl(fileUri);
 
-      // 캐시/컨텍스트에도 즉시 반영해서 다른 화면 갱신
       await cacheMyProfile({ avatarUrl: fileUri });
       setUser?.((prev: any) => ({
         ...prev,
@@ -118,14 +109,13 @@ export default function EditProfileScreen() {
       }));
 
       Alert.alert('완료', '프로필 사진이 변경되었습니다.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('오류', e?.message ?? '이미지 저장에 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 저장: 서버 없이 로컬(캐시/컨텍스트)만 갱신
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -148,7 +138,7 @@ export default function EditProfileScreen() {
 
       Alert.alert('저장 완료', '프로필 정보가 저장되었습니다.');
       (navigation as any).navigate('MyRoom', { refresh: Date.now() });
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('알림', e?.message ?? '로컬 저장 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -159,7 +149,6 @@ export default function EditProfileScreen() {
     Alert.alert('알림', '비밀번호 수정 기능은 준비 중입니다!');
   };
 
-  // 표시용: 로컬 미리보기 > avatarUrl(원격/로컬) > 컨텍스트 > 기본
   const avatarPreview =
     (avatarLocalPreview && { uri: avatarLocalPreview }) ||
     (avatarUrl && { uri: absUrl(avatarUrl)! }) ||

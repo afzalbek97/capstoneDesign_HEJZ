@@ -2,7 +2,6 @@
 import { BASE_URL } from './baseUrl';
 import { getToken } from '../auth/token';
 
-// 앱 부팅 후 최초 1번만 베이스 URL 로그
 let __loggedBase = false;
 function logBaseOnce() {
   if (!__loggedBase) {
@@ -50,7 +49,6 @@ export async function request<T>(path: string, opts: Opts = {}): Promise<T> {
     finalHeaders['Content-Type'] = 'application/json';
   }
 
-  // ⬇⬇⬇ 토큰 자동 주입
   const token = await getToken();
   if (token) finalHeaders['Authorization'] = `Bearer ${token}`;
 

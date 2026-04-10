@@ -11,7 +11,7 @@ import { deleteFeed, getFeed } from '../../api/feed';
 import { likeFeed, isLiked, getListOfLike } from '../../api/like';
 import { BASE_URL } from '../../api/baseUrl';
 import { createComment, getCommentsByFeed, deleteComment, CommentDto } from '../../api/comment';
-import { fetchUserInfoById } from '../../api/user'; // ✅ username 가져오기 위해 추가
+import { fetchUserInfoById } from '../../api/user';
 import Heart from '../../assets/icon/heart.png';
 import HeartOutline from '../../assets/icon/heart-outline.png';
 import CommentIcon from '../../assets/icon/comments.png';
@@ -19,13 +19,11 @@ import CommentIcon from '../../assets/icon/comments.png';
 const { height: SCREEN_H, width: SCREEN_W } = Dimensions.get('window');
 import type { FeedItemDto } from '../../api/types/feed';
 
-// ---------- 타입 ----------
 type ImageDto = { url: string; ord?: number };
 type P = {
   feedId: number | string;
 };
 
-// ---------- 유틸 ----------
 const { width, height } = Dimensions.get('window');
 
 function absUrl(u?: string | null) {
@@ -58,7 +56,6 @@ function pickFirstMediaUrlLocal(item: any): string | null {
   return normalizeAbsUrl(first?.url ?? null);
 }
 
-// ========== 컴포넌트 ==========
 export default function FeedDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<Record<string, any>, string>>();
@@ -67,21 +64,18 @@ export default function FeedDetailScreen() {
   const feedId = Number(params?.feedId);
 
 
-  // 상태
   const [feedData, setFeedData] = useState<FeedItemDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState<string>(''); // ✅ username 상태 추가
+  const [username, setUsername] = useState<string>('');
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<CommentDto[]>([]);
   const [commentText, setCommentText] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // ✅ 좋아요 상태 관리
   const [isLikedState, setIsLikedState] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
-  // ✅ 피드 데이터 및 좋아요 상태 초기 로드
   useEffect(() => {
     const loadFeedData = async () => {
       if (!feedId || isNaN(feedId)) {
@@ -93,11 +87,9 @@ export default function FeedDetailScreen() {
       try {
         setLoading(true);
 
-        // 1. 피드 데이터 가져오기
         const feed = await getFeed(feedId);
         setFeedData(feed);
 
-        // 2. ✅ userId 추출 및 username 가져오기
         const rawUserId =
           (feed as any)?.userId ??
           (feed as any)?.user_id ??
@@ -129,17 +121,15 @@ export default function FeedDetailScreen() {
           setUsername(fallbackUsername);
         }
 
-        // 3. 좋아요 상태 가져오기
         const checkIsLiked = await isLiked(feedId);
         setIsLikedState(checkIsLiked);
 
-        // 4. 좋아요 개수 가져오기
         const likeList = await getListOfLike(feedId);
         const count = Array.isArray(likeList) ? likeList.length : 0;
         setLikeCount(count);
 
 
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('오류', e?.message ?? '피드를 불러올 수 없습니다.');
         (navigation as any).goBack();
       } finally {
@@ -150,7 +140,6 @@ export default function FeedDetailScreen() {
     loadFeedData();
   }, [feedId, navigation]);
 
-  // media 리스트
   const media = useMemo(() => {
     if (!feedData) return [];
 
@@ -175,13 +164,12 @@ export default function FeedDetailScreen() {
 
   const firstMedia = media[0];
 
-  // 댓글 불러오기
   const loadComments = async () => {
     try {
       setLoadingComments(true);
       const data = await getCommentsByFeed(feedId);
       setComments(data);
-    } catch (e: any) {
+    } catch (e: unknown) {
     } finally {
       setLoadingComments(false);
     }
@@ -191,7 +179,6 @@ export default function FeedDetailScreen() {
     if (showComments) loadComments();
   }, [showComments]);
 
-  // 댓글 작성
   const handleCreateComment = async () => {
     if (!commentText.trim()) {
       Alert.alert('알림', '댓글 내용을 입력해주세요.');
@@ -203,14 +190,13 @@ export default function FeedDetailScreen() {
       setCommentText('');
       await loadComments();
       Alert.alert('완료', '댓글이 작성되었습니다.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('실패', e?.message ?? '댓글 작성 중 오류가 발생했습니다.');
     } finally {
       setSending(false);
     }
   };
 
-  // 댓글 삭제
   const handleDeleteComment = (commentId: number) => {
     Alert.alert('삭제할까요?', '이 댓글을 삭제합니다.', [
       { text: '취소', style: 'cancel' },
@@ -222,7 +208,7 @@ export default function FeedDetailScreen() {
             await deleteComment(commentId);
             await loadComments();
             Alert.alert('완료', '댓글이 삭제되었습니다.');
-          } catch (e: any) {
+          } catch (e: unknown) {
             Alert.alert('실패', e?.message ?? '삭제 중 오류가 발생했습니다.');
           }
         }
@@ -230,30 +216,24 @@ export default function FeedDetailScreen() {
     ]);
   };
 
-  // ✅ 좋아요 토글
   const toggleLike = async () => {
     try {
-      // 1. 좋아요 토글 API 호출
       await likeFeed(feedId);
 
-      // 2. 좋아요 상태 확인 (true/false)
       const checkIsLiked = await isLiked(feedId);
 
-      // 3. 좋아요 목록 가져오기 (개수 확인)
       const likeList = await getListOfLike(feedId);
       const newLikeCount = Array.isArray(likeList) ? likeList.length : 0;
 
-      // 4. UI 업데이트
       setIsLikedState(checkIsLiked);
       setLikeCount(newLikeCount);
 
 
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('알림', e?.message ?? '좋아요에 실패했어요.');
     }
   };
 
-  // 게시글 삭제
   const confirmDelete = () => {
     Alert.alert('삭제할까요?', '이 게시글을 삭제합니다.', [
       { text: '취소', style: 'cancel' },
@@ -265,7 +245,7 @@ export default function FeedDetailScreen() {
             await deleteFeed(feedId);
             Alert.alert('완료', '삭제되었습니다.');
             (navigation as any).goBack();
-          } catch (e: any) {
+          } catch (e: unknown) {
             Alert.alert('실패', e?.message ?? '삭제 중 오류가 발생했습니다.');
           }
         }
@@ -273,7 +253,6 @@ export default function FeedDetailScreen() {
     ]);
   };
 
-  // 로딩 중
   if (loading) {
     return (
       <View style={[s.screen, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -282,7 +261,6 @@ export default function FeedDetailScreen() {
     );
   }
 
-  // 데이터 없음
   if (!feedData) {
     return (
       <View style={[s.screen, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -295,7 +273,6 @@ export default function FeedDetailScreen() {
 
   return (
     <View style={s.screen}>
-      {/* ✅ CommunityScreen 스타일 - 풀스크린 비디오 */}
       <View style={s.page}>
         {firstMedia ? (
           firstMedia.isVideo ? (
@@ -312,7 +289,6 @@ export default function FeedDetailScreen() {
               onLoad={() =>              }}
               onLoad={() =>}
 
-// ✅ CommunityScreen과 동일한 스타일
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#000' },
   page: { width: SCREEN_W, height: SCREEN_H, backgroundColor: '#000' },

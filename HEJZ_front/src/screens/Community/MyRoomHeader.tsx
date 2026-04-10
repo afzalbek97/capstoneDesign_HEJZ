@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { useUser } from '../../context/UserContext';
-const MyRoomHeader = ({ navigation }: any) => {
+import type { CommunityNavigationProp } from '../../navigation/types';
+
+type Props = { navigation: CommunityNavigationProp };
+
+const MyRoomHeader = ({ navigation }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState('안녕하세요! 반갑습니다 :)');
 
@@ -20,7 +24,7 @@ const MyRoomHeader = ({ navigation }: any) => {
               <TextInput
                 value={bio}
                 onChangeText={setBio}
-                onBlur={() => setIsEditing(false)} // 포커스 벗어나면 저장
+                onBlur={() => setIsEditing(false)}
                 autoFocus
                 style={styles.greetingInput}
               />
@@ -51,7 +55,7 @@ export default MyRoomHeader;
 
 const styles = StyleSheet.create({
   headerWrapper: {
-    backgroundColor: '#fff', // 배경색 자유롭게~
+    backgroundColor: '#fff',
     padding: 24,
     borderBottomWidth: 1,
     borderColor: '#aaa',

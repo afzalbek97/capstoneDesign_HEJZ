@@ -6,15 +6,15 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signUp } from '../api/auth';
-import { cacheMyProfile } from '../api/user'; // ← 추가
+import { cacheMyProfile } from '../api/user';
 
 const SignUpScreen = () => {
-  const [username, setUsername] = useState('');          // 아이디
-  const [password, setPassword] = useState('');          // 비밀번호
-  const [email, setEmail] = useState('');                // 이메일
-  const [nickname, setNickname] = useState('');          // 닉네임
-  const [profileImageUrl, setProfileImageUrl] = useState(''); // 프로필 이미지 URL
-  const [bio, setBio] = useState('');                    // 자기소개
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
@@ -25,7 +25,6 @@ const SignUpScreen = () => {
     }
     setLoading(true);
     try {
-      // 1) 서버 가입 요청
       await signUp({
         username,
         password,
@@ -35,7 +34,6 @@ const SignUpScreen = () => {
         bio: bio.trim(),
       });
 
-      // 2) 입력값을 로컬 캐시 (로그인 전에도 프로필 화면에서 보이게)
       await cacheMyProfile({
         username,
         nickname,
@@ -74,7 +72,6 @@ const SignUpScreen = () => {
 
           <Text style={styles.title}>회원가입</Text>
 
-          {/* 아이디 */}
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="아이디 (username)"
@@ -86,7 +83,6 @@ const SignUpScreen = () => {
             />
           </View>
 
-          {/* 비밀번호 */}
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="비밀번호"
@@ -98,7 +94,6 @@ const SignUpScreen = () => {
             />
           </View>
 
-          {/* 이메일 */}
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="이메일"
@@ -111,7 +106,6 @@ const SignUpScreen = () => {
             />
           </View>
 
-          {/* 닉네임 */}
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="닉네임"
@@ -122,7 +116,6 @@ const SignUpScreen = () => {
             />
           </View>
 
-          {/* 프로필 이미지 URL (선택) */}
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="프로필 이미지 URL (선택)"
@@ -134,7 +127,6 @@ const SignUpScreen = () => {
             />
           </View>
 
-          {/* 자기소개 (선택, 멀티라인) */}
           <View style={[styles.inputContainer, { height: 100 }]}>
             <TextInput
               placeholder="자기소개 (선택)"

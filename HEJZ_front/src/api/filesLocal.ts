@@ -15,8 +15,7 @@ export async function savePickedToLocal(file: Picked): Promise<string> {
   } else if (/^file:\/\//i.test(file.uri)) {
     await RNFS.copyFile(file.uri.replace('file://',''), destPath);
   } else {
-    // content:// 대비: image-picker에서 includeBase64 켜주면 안전
-    throw new Error('content:// URI는 base64로 저장해야 합니다 (image-picker에서 includeBase64: true)');
+    throw new Error('content:
   }
 
   return `file://${destPath}`;

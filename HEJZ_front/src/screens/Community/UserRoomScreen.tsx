@@ -1,4 +1,3 @@
-// src/screens/UserRoomScreen.tsx  — 최종본 (프론트만으로 미리보기 보장)
 import React, { useCallback, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, FlatList, Image,
@@ -8,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../api/baseUrl';
 
-// ===== feed API (named/default 안전 호출) =====
 import FeedApiDefault, * as FeedApiNS from '../../api/feed';
 const fetchUserFeedsSafe =
   (FeedApiNS as any).fetchUserFeeds ?? (FeedApiDefault as any)?.fetchUserFeeds;
@@ -110,7 +108,7 @@ function GridThumb({
   );
 }
 
-export default function UserRoomScreen({ navigation, route }: any) {
+export default function UserRoomScreen({ navigation, route }: { navigation: any; route: any }) {
   const params = route?.params || {};
   const [user, setUser] = useState<Profile | null>(null);
   const [isMe, setIsMe] = useState(false);
@@ -130,7 +128,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
   const lastPageTsRef = useRef(0);
   const now = () => Date.now();
 
-  // 초기 로드: 프로필 → 피드
   useFocusEffect(
     useCallback(() => {
       if (didInitRef.current) return;
@@ -155,7 +152,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
           setFollowingCount(seed.following ?? 0);
         }
 
-        // 2) 서버 조회 (username 우선 → userId)
         let prof: Profile | null = null;
         try {
           if (params.username && fetchUserPublicByUsernameSafe) {
@@ -185,7 +181,7 @@ export default function UserRoomScreen({ navigation, route }: any) {
               };
             }
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
         }
 
         if (prof) {
@@ -194,7 +190,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
           setFollowingCount(prof.following ?? 0);
         }
 
-        // 3) 내/남 판별
         try {
           const myU = await AsyncStorage.getItem('user.username');
           const targetU = (prof ?? seed)?.username;
@@ -209,7 +204,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
     }, [params])
   );
 
-  // 피드 로드 (username 기반)
   const load = useCallback(async (reset = false) => {
     if (loadingRef.current) return;
     const uname = user?.username ?? params.username;
@@ -229,7 +223,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
                         Array.isArray(data?.feeds) ? data.feeds :
                         Array.isArray(data) ? data : [];
 
-      // 미디어 url 정리 + ord 정렬 (비정상 url은 null 처리되어 폴백으로 감)
       const safe: FeedItemDto[] = feedArray.map((it: any) => {
         const media = Array.isArray(it?.images) ? it.images
                     : Array.isArray(it?.media) ? it.media
@@ -248,7 +241,7 @@ export default function UserRoomScreen({ navigation, route }: any) {
       setCursor(nextCur);
       setHasMore(Boolean(nextCur));
       lastCursorRef.current = nextCur;
-    } catch (e: any) {
+    } catch (e: unknown) {
       Alert.alert('알림', e?.message ?? '요청 실패');
       setHasMore(false);
     } finally {
@@ -356,7 +349,7 @@ export default function UserRoomScreen({ navigation, route }: any) {
             <FollowButton
               username={username}
               onFollowChange={(following) => {
-                setFollowerCount((v) => Math.max(0, v + (following ? 1 : -1))); // 즉시 반영
+                setFollowerCount((v) => Math.max(0, v + (following ? 1 : -1)));
               }}
             />
           )}
@@ -384,7 +377,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
         }
       />
 
-      {/* (선택) 하단 탭 — 필요 없으면 제거 */}
       <View style={s.tabbar}>
         <TabImg src={ICON_MUSIC} onPress={() => navigation.navigate('Music')} />
         <TabImg src={ICON_SHORT} onPress={() => navigation.navigate('Community', { screen: 'Community' })} />
@@ -427,7 +419,6 @@ const s = StyleSheet.create({
   meta: { fontSize: 12, color: '#6B7280', marginTop: 4 },
   bio: { marginTop: 10, marginLeft: 20, marginRight: 12, fontSize: 15, color: '#374151' },
 
-  // Grid cell (MyRoom 톤 + 테두리)
   gridItem: {
     width: THUMB, height: THUMB,
     backgroundColor: '#FFFFFF',
@@ -437,7 +428,7 @@ const s = StyleSheet.create({
   gridBorder: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB' },
   thumbImg: { width: '100%', height: '100%' },
   thumbFallback: {
-    backgroundColor: '#0F172A', // 텍스트 타일 배경 (MyRoom과 동일)
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,

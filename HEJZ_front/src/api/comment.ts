@@ -25,7 +25,6 @@ export interface CommentDeleteRequest {
   commentId: number;
 }
 
-// ====== 내부 유틸 ======
 async function getAuthToken(): Promise<string | null> {
   const keys = ['auth.token', 'token', 'accessToken', 'jwt'];
   const pairs = await AsyncStorage.multiGet(keys);
@@ -57,14 +56,12 @@ async function http<T>(path: string, init: RequestInit & { auth?: boolean } = {}
     },
   });
 
-  // 204 No Content 등 처리
   if (res.status === 204) return undefined as unknown as T;
 
   let json: any = {};
   try {
     json = await res.json();
   } catch {
-    // body가 비어있을 수 있음
   }
 
   if (!res.ok) {
@@ -85,7 +82,6 @@ export async function createComment(feedId: number, comment: string): Promise<Co
   });
 }
 
-// POST /api/comments/getcomments  (피드별 댓글 조회)
 export async function getCommentsByFeed(feedId: number): Promise<CommentDto[]> {
   return http<CommentDto[]>('/api/comments/getcomments', {
     method: 'POST',
@@ -94,7 +90,6 @@ export async function getCommentsByFeed(feedId: number): Promise<CommentDto[]> {
   });
 }
 
-// GET /api/comments/getmycomments  (내 댓글 목록)
 export async function getMyComments(): Promise<CommentDto[]> {
   return http<CommentDto[]>('/api/comments/getmycomments', {
     method: 'GET',

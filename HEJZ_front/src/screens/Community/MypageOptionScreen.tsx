@@ -3,13 +3,16 @@ import { Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-nat
 import { logoutLocalOnly } from '../../api/auth';
 import { clearProfileCache } from '../../api/user';
 
-const MyPageOptionsScreen = ({ navigation }: any) => {
+import type { CommunityNavigationProp } from '../../navigation/types';
+
+type Props = { navigation: CommunityNavigationProp };
+
+const MyPageOptionsScreen = ({ navigation }: Props) => {
   const handleLogout = async () => {
     try {
-      await logoutLocalOnly();    // 1) 토큰 삭제 ('accessToken')
-      //await clearProfileCache();  // 2) 프로필 캐시 삭제
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); // 3) 스택 리셋
-    } catch (e: any) {
+      await logoutLocalOnly();
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    } catch (e: unknown) {
       Alert.alert('로그아웃 오류', String(e?.message ?? e));
     }
   };
@@ -42,7 +45,6 @@ const MyPageOptionsScreen = ({ navigation }: any) => {
         <Text style={styles.buttonText}>차단 목록</Text>
       </TouchableOpacity>
 
-      {/* 로그아웃 */}
       <TouchableOpacity style={[styles.button, styles.danger]} onPress={handleLogout}>
         <Text style={[styles.buttonText, { fontWeight: '700' }]}>로그아웃</Text>
       </TouchableOpacity>

@@ -2,7 +2,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from './baseUrl';
 
-// 타입 정의
 export type Song = {
   id: string;
   title: string;
@@ -28,7 +27,6 @@ export type SongResponse = {
   prompt?: string;
   lyricsJson?: string;
   plainLyrics?: string;
-  // 기존 필드 (다른 API용)
   id?: string;
   songId?: string;
   songTitle?: string;
@@ -44,7 +42,6 @@ export type TimestampLyricsRequest = {
   audioId: string;
 };
 
-// 인증 헤더 가져오기
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -112,12 +109,10 @@ export async function getSongList(): Promise<Song[]> {
       return [];
     }
 
-    // getSongs는 직접 배열을 반환
     if (Array.isArray(result)) {
       return result.map((song: SongResponse) => parseSong(song));
     }
 
-    // ApiResponse 형태로 감싸져 있는 경우
     if (result.data && Array.isArray(result.data)) {
       return result.data.map((song: SongResponse) => parseSong(song));
     }
@@ -155,17 +150,13 @@ export async function getLyrics(songId: string): Promise<string> {
 
     const result = await response.json();
 
-    // ApiResponse<Object> 구조 처리
     if (result.data) {
-      // data가 문자열인 경우
       if (typeof result.data === 'string') {
         return result.data;
       }
-      // data가 객체이고 lyrics 필드가 있는 경우
       if (result.data.lyrics) {
         return result.data.lyrics;
       }
-      // data가 객체이고 plainLyrics 필드가 있는 경우
       if (result.data.plainLyrics) {
         return result.data.plainLyrics;
       }
@@ -184,7 +175,6 @@ export async function getLyrics(songId: string): Promise<string> {
  */
 function parseSong(data: SongResponse): Song {
   return {
-    // Suno API 형식 (getSongs)
     id: data.taskId || data.audioId || data.id || data.songId || '',
     title: data.title || data.songTitle || '제목 없음',
     filepath: data.audioUrl || data.streamAudioUrl || data.sourceAudioUrl ||

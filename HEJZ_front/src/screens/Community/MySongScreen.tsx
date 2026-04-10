@@ -19,7 +19,11 @@ const songs = [
   { id: '4', title: '혜미가 아니라 해미라구요', file: 'song4' },
 ];
 
-const MySongsScreen = ({ navigation }: any) => {
+import type { CommunityNavigationProp } from '../../navigation/types';
+
+type Props = { navigation: CommunityNavigationProp };
+
+const MySongsScreen = ({ navigation }: Props) => {
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [currentSong, setCurrentSong] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
@@ -214,8 +218,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   navIcon: {
-    width: 48,   // 기존보다 키움
-    height: 48,  // 기존보다 키움
+    width: 48,
+    height: 48,
     resizeMode: 'contain',
   },
 });

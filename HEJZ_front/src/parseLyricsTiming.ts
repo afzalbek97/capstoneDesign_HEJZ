@@ -40,7 +40,6 @@ export const parseLyricsTiming = (alignedWords: any[]): LyricsBlock[] => {
         end: line2.end,
       });
     } else {
-      // ✅ 마지막 줄만 있을 경우 빈 문자열 한 줄 추가
       blocks.push({
         lines: [line1.text, ' '],
         start: line1.start,

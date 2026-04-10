@@ -5,7 +5,6 @@ import { request } from './request';
 import type { FeedListResponse, FeedCreateRequest, FeedItemDto } from './types/feed';
 import { getToken } from '../auth/token';
 
-// ========== 공통 ==========
 
 function safeJson<T = any>(text: string | null): T | {} {
   try {
@@ -15,7 +14,6 @@ function safeJson<T = any>(text: string | null): T | {} {
   }
 }
 
-// 아이템 정규화: id 보정 + 이미지/미디어 통일 + _key 생성
 function normalizeFeedItem(raw: any, idx: number) {
   const id =
     raw?.id ??
@@ -28,7 +26,6 @@ function normalizeFeedItem(raw: any, idx: number) {
       ? raw.userId
       : Number(raw?.userId) || undefined;
 
-  // 백엔드가 images[] 또는 media[] 둘 중 하나 줄 수 있음
   const imagesArr = Array.isArray(raw?.images)
     ? raw.images
     : Array.isArray(raw?.media)
@@ -44,7 +41,6 @@ function normalizeFeedItem(raw: any, idx: number) {
 
   const createdAt = raw?.createdAt ?? raw?.created_at ?? null;
 
-  // 고유 키 (FlatList에 그대로 써도 됨)
   const _key = String(id);
 
   return {
@@ -57,7 +53,6 @@ function normalizeFeedItem(raw: any, idx: number) {
   } as FeedItemDto & { _key: string };
 }
 
-// ApiResponse 래퍼 파서
 function parseApiResponse(json: any, resStatus: number) {
   const code = json?.code ?? resStatus;
   if (code === 401) throw new Error('로그인이 필요합니다(401)');
@@ -70,7 +65,6 @@ function parseApiResponse(json: any, resStatus: number) {
   return json?.data ?? {};
 }
 
-// items/feeds 어느 쪽이든 흡수
 function pickItems(data: any): any[] {
   if (Array.isArray(data?.items)) return data.items;
   if (Array.isArray(data?.feeds)) return data.feeds;
@@ -78,13 +72,12 @@ function pickItems(data: any): any[] {
   return [];
 }
 
-// ========== 기존 API 그대로 유지 ==========
 export const fetchMyFeeds = (p: { limit?: number; cursor?: string | null }) =>
   request<FeedListResponse>('/api/feeds/me', {
     params: { limit: p.limit ?? 20, cursor: p.cursor ?? undefined },
   });
 
-export async function createFeed(body: FeedCreateRequest, timeoutMs = 60000) { // 🔧 15초 → 60초로 증가
+export async function createFeed(body: FeedCreateRequest, timeoutMs = 60000) {
   const token = await getToken();
 
   const to = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -117,7 +110,6 @@ export async function createFeed(body: FeedCreateRequest, timeoutMs = 60000) { /
 export const deleteFeed = (feedId: number) =>
   request<null>(`/api/feeds/${feedId}`, { method: 'DELETE' });
 
-// 타인 피드 조회 (그대로 둠)
 export async function fetchUserFeeds(username: string, limit: number = 20, cursor?: string): Promise<FeedListResponse> {
   const keys = ['auth.token', 'token', 'accessToken', 'jwt'];
   const pairs = await AsyncStorage.multiGet(keys);
@@ -171,7 +163,6 @@ export async function getFeed(feedId: number): Promise<FeedItemDto> {
 }
 
 
-// ========== 타임라인 & 글로벌 ==========
 
 export async function fetchTimeline(p: { limit?: number; cursor?: string | null } = {}) {
   const limit = p.limit ?? 20;
@@ -211,12 +202,11 @@ export async function fetchFeedDetail(feedId: number) {
   });
 
   const json = await res.json().catch(() => ({}));
-  const data = parseApiResponse(json, res.status); // 기존 함수 재사용
-  return data; // 기대: { id, content, images: [{url, ord, ...}], ... }
+  const data = parseApiResponse(json, res.status);
+  return data;
 }
 
 
-// 전역 최신 피드(백엔드 /api/feeds/global)
 export async function fetchGlobal(p: { limit?: number; cursor?: string | null } = {}) {
   const limit = p.limit ?? 20;
   const cursor = p.cursor ?? null;

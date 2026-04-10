@@ -51,7 +51,7 @@ export async function authFetch(
     }
 
     return (json && (json as any).data != null) ? (json as any).data : json;
-  } catch (e: any) {
+  } catch (e: unknown) {
     throw e;
   }
 }

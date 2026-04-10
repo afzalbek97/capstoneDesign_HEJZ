@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 
-const videos: any[] = []; // 나중에 영상 데이터 들어올 자리
+const videos: any[] = [];
 
 const MyDanceScreen = () => {
-  const renderItem = ({ item }: any) => (
+  const renderItem={({ item }: { item: any }) => (
     <View style={styles.videoItem}>
       <Text style={styles.title}>{item.title}</Text>
     </View>

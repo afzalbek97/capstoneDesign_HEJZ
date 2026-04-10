@@ -19,7 +19,6 @@ const EMOTIONS = [
   '희망','열정','자신감','매혹','도전','차분함',
 ];
 
-// ✅ 캐릭터/말풍선 문구
 const MESSAGES = [
   '원하는 분위기를 입력해보세요',
   '오늘 기분은 어때요?',
@@ -36,7 +35,6 @@ const SongScreen = () => {
   const [loading, setLoading] = useState(false);
   const [songResult, setSongResult] = useState<string | null>(null);
 
-  // ====== 기존 필드 ======
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('');
   const [title, setTitle] = useState('');
@@ -47,7 +45,6 @@ const SongScreen = () => {
     `${apiUrl}/api/suno/callback`,
   );
 
-  // ====== 감정(무드) 태그 선택 ======
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
 
   const toggleEmotion = (emo: string) => {
@@ -56,13 +53,11 @@ const SongScreen = () => {
     );
   };
 
-  // 최종 프롬프트
   const buildFinalPrompt = () => {
     const mood = selectedEmotions.length ? `[Mood: ${selectedEmotions.join(', ')}] ` : '';
     return `${mood}${prompt}`.trim();
   };
 
-  // ✅ 말풍선 문구 상태 & 랜덤 변경
   const [bubbleText, setBubbleText] = useState(
     MESSAGES[Math.floor(Math.random() * MESSAGES.length)]
   );
@@ -117,7 +112,6 @@ const SongScreen = () => {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>원하는 분위기를 선택/입력해보세요!</Text>
 
-        {/* 감정 선택 칩 영역 */}
         <View style={styles.chipsWrap}>
           {EMOTIONS.map((emo) => {
             const active = selectedEmotions.includes(emo);
@@ -136,7 +130,6 @@ const SongScreen = () => {
           })}
         </View>
 
-        {/* 사용자 프롬프트 */}
         <TextInput
           style={styles.input}
           placeholder="추가 프롬프트를 입력하세요 (예: 여름밤 해변에서 춤추는 느낌)"
@@ -147,7 +140,6 @@ const SongScreen = () => {
           textAlignVertical="top"
         />
 
-        {/* 미리보기 */}
         <View style={styles.previewBox}>
           <Text style={styles.previewLabel}>최종 프롬프트 미리보기</Text>
           <Text style={styles.previewText}>{buildFinalPrompt() || '선택/입력 대기...'}</Text>
@@ -169,7 +161,6 @@ const SongScreen = () => {
           </View>
         )}
 
-        {/* ✅ 캐릭터 + 말풍선 (노래 생성 버튼 하단, 좌측 정렬) */}
         <TouchableOpacity
           style={styles.assistantWrap}
           activeOpacity={0.85}
@@ -178,7 +169,6 @@ const SongScreen = () => {
           <Image source={pixelImg} style={styles.pixel} resizeMode="contain" />
           <View style={styles.bubble}>
             <Text style={styles.bubbleText}>{bubbleText}</Text>
-            {/* 말풍선 꼬리 */}
             <View style={styles.tail} />
           </View>
         </TouchableOpacity>
@@ -270,10 +260,9 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
-  // ✅ 캐릭터 + 말풍선
   assistantWrap: {
     marginTop: 5,
-    alignSelf: 'flex-start',      // 왼쪽 정렬
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
@@ -299,7 +288,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  // 말풍선 꼬리: 작은 네모를 45도 회전해서 사용
   tail: {
     position: 'absolute',
     left: -6,
@@ -315,6 +303,6 @@ const styles = StyleSheet.create({
   tip: {
     marginTop: 6,
     fontSize: 12,
-    color: '#8aa6d6', // #587dc4 톤다운
+    color: '#8aa6d6',
   },
 });

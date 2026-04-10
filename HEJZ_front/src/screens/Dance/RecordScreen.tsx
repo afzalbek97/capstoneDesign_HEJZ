@@ -23,26 +23,23 @@ type MotionSegment = {
 type Props = {
   route: {
     params: {
-      songId?: string;           // 저장된 곡 조회용
-      audioUrl?: string;         // 직접 전달 (DanceRecommendScreen에서)
-      motionSegments?: MotionSegment[]; // 직접 전달
+      songId?: string;
+      audioUrl?: string;
+      motionSegments?: MotionSegment[];
     };
   };
 };
 
 export default function RecordScreen({ route }: Props) {
-  // Props에서 받거나, 조회해서 가져오기
   const [audioUrl, setAudioUrl] = React.useState<string | null>(route.params?.audioUrl || null);
   const [motionSegments, setMotionSegments] = React.useState<MotionSegment[]>(
     route.params?.motionSegments || []
   );
   const [loadingData, setLoadingData] = React.useState(false);
 
-  // 전/후면 전환
   const [useFront, setUseFront] = useState(false);
   const device: CameraDevice | undefined = useCameraDevice(useFront ? 'front' : 'back');
 
-  // 권한/상태
   const cameraRef = useRef<Camera>(null);
   const [hasPerm, setHasPerm] = useState(false);
   const [permAsked, setPermAsked] = useState(false);
@@ -53,19 +50,16 @@ export default function RecordScreen({ route }: Props) {
   const recordingRef = useRef<any>(null);
   const [lastPath, setLastPath] = useState<string | null>(null);
 
-  // ====== 오디오 재생 (react-native-video) ======
   const audioRef = useRef<Video>(null);
   const [playAudio, setPlayAudio] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const audioPosRef = useRef(0);
 
-  // ====== 안무 비디오 오버레이 (순차 재생) ======
   const overlayVideoRef = useRef<Video>(null);
   const [overlayOn, setOverlayOn] = useState(false);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
-  const [videoKey, setVideoKey] = useState(0); // 비디오 강제 리렌더용
+  const [videoKey, setVideoKey] = useState(0);
 
-  // ------ 권한 ------
   const requestPerms = useCallback(async () => {
     try {
       const cam = await Camera.requestCameraPermission();
@@ -84,11 +78,10 @@ export default function RecordScreen({ route }: Props) {
     requestPerms();
   }, [requestPerms]);
 
-  // ====== 저장된 곡 데이터 로드 ======
   useEffect(() => {
     (async () => {
       const { songId } = route.params || {};
-      if (!songId) return; // songId 없으면 직접 전달된 데이터 사용
+      if (!songId) return;
 
       try {
         setLoadingData(true);
@@ -100,18 +93,14 @@ export default function RecordScreen({ route }: Props) {
         }
 
 
-        // 오디오 URL 설정
         setAudioUrl(savedData.audioUrl);
 
-        // 모든 motionId 수집
         const allMotionIds = savedData.selections
           .flatMap(sel => sel.selectedMotionIds)
           .filter(Boolean);
 
-        // motionId → URL 병렬 조회
         const urlMap = await getMotionUrls(allMotionIds);
 
-        // MotionSegment 배열 생성
         const segments: MotionSegment[] = savedData.selections.map(sel => ({
           motionUrl: urlMap.get(sel.selectedMotionIds[0]) || '',
           startTime: sel.startTime || 0,
@@ -121,7 +110,7 @@ export default function RecordScreen({ route }: Props) {
 
         setMotionSegments(segments);
 
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('오류', e?.message ?? '저장된 데이터를 불러올 수 없습니다.');
       } finally {
         setLoadingData(false);
@@ -129,7 +118,6 @@ export default function RecordScreen({ route }: Props) {
     })();
   }, [route.params?.songId]);
 
-  // ------ 갤러리 권한(안드로이드) ------
   async function ensureAndroidGalleryPerm() {
     if (Platform.OS !== 'android') return true;
     if (Platform.Version >= 33) {
@@ -147,7 +135,6 @@ export default function RecordScreen({ route }: Props) {
     return true;
   }
 
-  // ------ 저장 공통 ------
   async function saveUriToGallery(filePath: string) {
     const ok = await ensureAndroidGalleryPerm();
     if (!ok) throw new Error('갤러리 권한이 거부되었습니다.');
@@ -156,7 +143,6 @@ export default function RecordScreen({ route }: Props) {
     return savedUri;
   }
 
-  // ===== 오디오 제어 =====
   async function pauseAudioAndRemember() {
     setPlayAudio(false);
   }
@@ -174,11 +160,9 @@ export default function RecordScreen({ route }: Props) {
     setVideoKey(0);
   }
 
-  // ===== 오디오 시간에 따라 안무 인덱스 자동 변경 (개선됨) =====
   useEffect(() => {
     if (!playAudio || motionSegments.length === 0) return;
 
-    // 현재 재생 시간에 맞는 구간의 인덱스 찾기
     let targetIndex = -1;
 
     for (let i = 0; i < motionSegments.length; i++) {
@@ -189,18 +173,15 @@ export default function RecordScreen({ route }: Props) {
       }
     }
 
-    // 구간을 찾았고, 인덱스가 바뀌면 안무 변경
     if (targetIndex !== -1 && targetIndex !== currentSegmentIndex) {
       const seg = motionSegments[targetIndex];
 
       setCurrentSegmentIndex(targetIndex);
 
-      // 비디오 강제 리렌더
       setVideoKey(prev => prev + 1);
     }
   }, [currentAudioTime, playAudio, motionSegments, currentSegmentIndex]);
 
-  // ====== 녹화 시작 ======
   const startRec = useCallback(async () => {
     if (recording || !cameraRef.current) return;
     if (!hasPerm || !device) {
@@ -216,11 +197,9 @@ export default function RecordScreen({ route }: Props) {
     setIsStarting(true);
     setOverlayOn(true);
 
-    // 첫 번째 구간부터 시작
     setCurrentSegmentIndex(0);
     setVideoKey(0);
 
-    // 오디오 시작
     resumeAudioFromRemembered();
 
     try {
@@ -236,7 +215,7 @@ export default function RecordScreen({ route }: Props) {
           try {
             const savedUri = await saveUriToGallery(v.path);
             Alert.alert('녹화 & 저장 완료', savedUri);
-          } catch (e: any) {
+          } catch (e: unknown) {
             Alert.alert('저장 실패', e?.message ?? String(e));
           }
         },
@@ -270,7 +249,6 @@ export default function RecordScreen({ route }: Props) {
     }
   }, [recording, hasPerm, device, audioUrl, motionSegments]);
 
-  // ====== 일시정지/재개 토글 ======
   const togglePauseResume = useCallback(async () => {
     if (!recording) {
       await startRec();
@@ -281,7 +259,7 @@ export default function RecordScreen({ route }: Props) {
         await pauseAudioAndRemember();
         await recordingRef.current?.pause?.();
         setIsPaused(true);
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('일시정지 실패', String(e?.message ?? e));
       }
     } else {
@@ -289,13 +267,12 @@ export default function RecordScreen({ route }: Props) {
         resumeAudioFromRemembered();
         await recordingRef.current?.resume?.();
         setIsPaused(false);
-      } catch (e: any) {
+      } catch (e: unknown) {
         Alert.alert('재개 실패', String(e?.message ?? e));
       }
     }
   }, [recording, isPaused, startRec]);
 
-  // ====== 정지 ======
   const stopRec = useCallback(async () => {
     if (!recording) return;
     try {
@@ -310,7 +287,6 @@ export default function RecordScreen({ route }: Props) {
     }
   }, [recording]);
 
-  // ====== 초기화 ======
   const resetAll = useCallback(async () => {
     try { await cameraRef.current?.stopRecording(); } catch {}
     setRecording(false);
@@ -322,7 +298,6 @@ export default function RecordScreen({ route }: Props) {
     Alert.alert('초기화', '영상/음악이 처음 상태로 초기화됐습니다.');
   }, []);
 
-  // 로딩 상태
   if (loadingData) {
     return (
       <View style={s.center}>
@@ -360,18 +335,15 @@ export default function RecordScreen({ route }: Props) {
 
   const currentSegment = motionSegments[currentSegmentIndex];
 
-  // 가사를 두 줄로 분리
   const lyricsLines = (currentSegment?.lyrics || '').split('\n').filter(Boolean);
 
   return (
     <View style={s.wrap}>
-      {/* 상단: 좌측 = 전면전환 */}
       <View style={s.topBar}>
         <TouchableOpacity style={s.topLeftBtn} onPress={() => setUseFront(v => !v)}>
           <Text style={s.topBtnTxt}>전면전환</Text>
         </TouchableOpacity>
 
-        {/* 현재 구간 표시 - 가사 두 줄 표시 */}
         {overlayOn && currentSegment && (
           <View style={s.segmentInfo}>
             <Text style={s.segmentText}>
@@ -396,7 +368,6 @@ export default function RecordScreen({ route }: Props) {
         )}
       </View>
 
-      {/* 카메라 프리뷰 */}
       <Camera
         ref={cameraRef}
         style={s.preview}
@@ -409,7 +380,6 @@ export default function RecordScreen({ route }: Props) {
         }}
       />
 
-      {/* === 숨김 오디오 플레이어 === */}
       <Video
         ref={audioRef}
         source={{ uri: audioUrl }}
@@ -433,7 +403,6 @@ export default function RecordScreen({ route }: Props) {
         style={{ width: 0, height: 0 }}
       />
 
-      {/* === 우상단 미니 안무 비디오 오버레이 (순차 재생) === */}
       {overlayOn && currentSegment?.motionUrl && (
         <View style={s.overlayBox}>
           <Video

@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 
-// 북마크된 숏츠 아이템 타입 (likes 제거)
 type ShortsItem = {
   id: string;
   title: string;
 };
 
-const BookmarkScreen = ({ route }: any) => {
+const BookmarkScreen = ({ route }: { route: any }) => {
   const bookmarkedShorts: ShortsItem[] = route?.params?.bookmarkedShorts ?? [];
 
   return (
