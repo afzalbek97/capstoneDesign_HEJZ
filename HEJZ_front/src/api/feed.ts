@@ -87,9 +87,6 @@ export const fetchMyFeeds = (p: { limit?: number; cursor?: string | null }) =>
 export async function createFeed(body: FeedCreateRequest, timeoutMs = 60000) { // 🔧 15초 → 60초로 증가
   const token = await getToken();
 
-  console.log('[createFeed] 요청 시작:', { body, timeoutMs }); // 🔍
-
-  const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), timeoutMs);
 
   try {
@@ -104,30 +101,12 @@ export async function createFeed(body: FeedCreateRequest, timeoutMs = 60000) { /
       signal: ctrl.signal,
     });
 
-    console.log('[createFeed] 응답 상태:', res.status); // 🔍
-
-    const responseText = await res.text();
-    console.log('[createFeed] 응답 원본:', responseText); // 🔍
-
-    let json;
-    try {
-      json = JSON.parse(responseText);
     } catch (parseErr) {
-      console.error('[createFeed] JSON 파싱 실패:', parseErr); // 🔍
-      throw new Error('서버 응답을 파싱할 수 없어요');
     }
 
     if (!res.ok) {
-      console.error('[createFeed] 서버 에러:', json); // 🔍
-      throw new Error(json?.message || json?.msg || `HTTP ${res.status}`);
     }
 
-    console.log('[createFeed] 성공:', json); // 🔍
-    return json?.data ?? json;
-  } catch (err: any) {
-    console.error('[createFeed] 에러 발생:', err); // 🔍
-    if (err?.name === 'AbortError') {
-      throw new Error('요청이 시간 초과됐어요.');
     }
     throw err;
   } finally {
@@ -180,7 +159,6 @@ export async function getFeed(feedId: number): Promise<FeedItemDto> {
   });
 
   const json = await res.json();
-  console.log('[getFeed] 응답:', json);
 
   const code = json?.code ?? res.status;
 
@@ -188,14 +166,7 @@ export async function getFeed(feedId: number): Promise<FeedItemDto> {
       throw new Error(json?.msg ?? json?.message ?? '피드 조회 실패');
   }
 
-  console.log('[getFeed] 전체 응답:', {
-  status: res.status,
-  json: json,
-  code: json?.code,
-  data: json?.data
-  });
 
-  console.log('[getFeed] 성공!');
   return json?.data ?? json;
 }
 
@@ -232,7 +203,6 @@ export async function fetchTimeline(p: { limit?: number; cursor?: string | null 
 
 export async function fetchFeedDetail(feedId: number) {
   const token = await getToken();
-  console.log(feedId);
   const res = await fetch(`${BASE_URL}/api/feeds/${encodeURIComponent(feedId)}`, {
     headers: {
       Accept: 'application/json',

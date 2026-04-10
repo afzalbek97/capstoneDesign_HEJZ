@@ -12,7 +12,6 @@ export async function getAuthToken(): Promise<string | null> {
 /** 팔로우하기 */
 export async function followUser(username: string): Promise<void> {
   const token = await getAuthToken();
-  console.log('[followUser] 요청:', username, 'token:', !!token);
 
   const res = await fetch(`${BASE_URL}/api/follow/follow`, {
     method: 'POST',
@@ -25,7 +24,6 @@ export async function followUser(username: string): Promise<void> {
   });
 
   const json = await res.json();
-  console.log('[followUser] 응답:', json);
 
   const code = json?.code ?? res.status;
 
@@ -33,7 +31,6 @@ export async function followUser(username: string): Promise<void> {
     throw new Error(json?.msg ?? json?.message ?? '팔로우 실패');
   }
 
-  console.log('[followUser] 성공!');
   return json?.data ?? json;
 }
 

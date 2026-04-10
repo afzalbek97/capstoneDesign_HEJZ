@@ -186,7 +186,6 @@ export default function UserRoomScreen({ navigation, route }: any) {
             }
           }
         } catch (e: any) {
-          console.log('[UserRoom] profile fetch fail:', e?.message);
         }
 
         if (prof) {

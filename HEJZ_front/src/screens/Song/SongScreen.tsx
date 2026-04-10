@@ -44,7 +44,7 @@ const SongScreen = () => {
   const [instrumental, setInstrumental] = useState(false);
   const [model, setModel] = useState<'V3_5' | 'V4' | 'V4_5' | 'V5'>('V5');
   const [callBackUrl, setCallBackUrl] = useState(
-    'https://3c6ffa0274a2.ngrok-free.app/api/suno/callback',
+    `${apiUrl}/api/suno/callback`,
   );
 
   // ====== 감정(무드) 태그 선택 ======
@@ -81,7 +81,7 @@ const SongScreen = () => {
 
     try {
       await axios.post(
-        'https://3c6ffa0274a2.ngrok-free.app/api/suno/generate',
+        `${apiUrl}/api/suno/generate`,
         {
           prompt: finalPrompt,
           style,
@@ -98,10 +98,8 @@ const SongScreen = () => {
           },
         }
       );
-      console.log('Suno 응답: OK');
       setSongResult('노래 생성 요청 완료!');
     } catch (error) {
-      console.error('노래 생성 실패:', error);
       setSongResult('노래 생성에 실패했어요 ㅠㅠ');
     } finally {
       setLoading(false);

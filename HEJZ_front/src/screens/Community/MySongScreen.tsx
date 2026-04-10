@@ -44,12 +44,10 @@ const MySongsScreen = ({ navigation }: any) => {
           setCurrentTime(info.currentTime || 0);
           setDuration(info.duration || 0);
         } catch (e) {
-          console.log('getInfo 에러:', e);
         }
       }, 500);
       setIntervalId(idInterval);
     } catch (e) {
-      console.log('재생 에러:', e);
       Alert.alert('재생 실패', '오디오 파일을 찾을 수 없어요.');
     }
   };

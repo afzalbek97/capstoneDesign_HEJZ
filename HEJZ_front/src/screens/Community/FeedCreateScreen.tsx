@@ -43,7 +43,6 @@ export default function FeedCreateScreen() {
           .filter(r => r.id && r.title);
         setSongs(rows);
       } catch (e:any) {
-        console.warn('[FeedCreate] getSongList fail:', e?.message ?? e);
       }
     })();
   }, []);
@@ -62,7 +61,6 @@ export default function FeedCreateScreen() {
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO
         );
 
-        console.log('[권한] 현재 상태 - 이미지:', checkImage, '비디오:', checkVideo);
 
         // 이미 권한이 있으면 바로 통과
         if (checkImage || checkVideo) {
@@ -75,7 +73,6 @@ export default function FeedCreateScreen() {
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
         ]);
 
-        console.log('[권한] 요청 결과:', statuses);
 
         // 하나라도 granted면 OK
         const granted = Object.values(statuses).some(
@@ -103,7 +100,6 @@ export default function FeedCreateScreen() {
           PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
         );
 
-        console.log('[권한] Android 10-12 상태:', hasPermission);
 
         if (hasPermission) return true;
 
@@ -137,7 +133,6 @@ export default function FeedCreateScreen() {
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
       );
 
-      console.log('[권한] Android 9 이하 상태:', status);
 
       if (status !== PermissionsAndroid.RESULTS.GRANTED) {
         Alert.alert(
@@ -154,60 +149,44 @@ export default function FeedCreateScreen() {
       return true;
 
     } catch (err) {
-      console.error('[권한] 요청 실패:', err);
       Alert.alert('오류', '권한 확인 중 오류가 발생했습니다.');
       return false;
     }
   };
 
   const pick = async () => {
-    console.log('[갤러리] 선택 시작');
 
     const ok = await askPerm();
-    console.log('[갤러리] 권한 결과:', ok);
 
     if (!ok) {
-      console.log('[갤러리] 권한 없음, 중단');
       return;
     }
 
     try {
-      console.log('[갤러리] launchImageLibrary 호출');
       const r = await launchImageLibrary({
         mediaType: 'mixed',
         selectionLimit: 5,
         includeExtra: true,
       });
 
-      console.log('[갤러리] 결과:', {
-        didCancel: r.didCancel,
-        errorCode: r.errorCode,
-        errorMessage: r.errorMessage,
-        assetsCount: r.assets?.length || 0
-      });
 
       if (r.didCancel) {
-        console.log('[갤러리] 사용자 취소');
         return;
       }
 
       if (r.errorMessage || r.errorCode) {
-        console.error('[갤러리] 에러:', r.errorMessage, r.errorCode);
         Alert.alert('선택 실패', r.errorMessage || `에러 코드: ${r.errorCode}`);
         return;
       }
 
       setAssets(r.assets ?? []);
-      console.log('[갤러리] 선택 완료:', r.assets?.length || 0, '개');
     } catch (err) {
-      console.error('[갤러리] 예외 발생:', err);
       Alert.alert('오류', '갤러리를 열 수 없습니다.');
     }
   };
 
   const submit = async () => {
     if (busy) {
-      console.log('[FeedCreate] 이미 업로드 중, 무시');
       return;
     }
 
@@ -219,7 +198,6 @@ export default function FeedCreateScreen() {
 
     try {
       setBusy(true);
-      console.log('[FeedCreate] ========== 업로드 시작 ==========');
 
       // 1) 파일 업로드
       const urls: string[] = [];
@@ -240,18 +218,14 @@ export default function FeedCreateScreen() {
         genre:   genre.lower,
       };
 
-      console.log('[FeedCreate] createFeed 요청 payload:', JSON.stringify(payload, null, 2));
       await createFeed(payload);
 
-      console.log('[FeedCreate] ========== 업로드 완전 완료 ==========');
       Alert.alert('완료', '피드가 등록되었습니다.');
       // @ts-ignore
       nav.navigate('MyRoom', { refresh: Date.now() });
     } catch (e: any) {
-      console.error('[FeedCreate] 업로드 실패:', e);
       Alert.alert('업로드 실패', e?.message || '오류가 발생했어요.');
     } finally {
-      console.log('[FeedCreate] setBusy(false) 실행');
       setBusy(false);
     }
   };

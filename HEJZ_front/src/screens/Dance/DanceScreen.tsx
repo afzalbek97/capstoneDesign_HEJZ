@@ -70,20 +70,15 @@ const DanceScreen = ({ navigation }: any) => {
     const fetchSongs = async () => {
       try {
         setLoading(true);
-        console.log('[DanceScreen] 노래 목록 가져오기 시작');
 
         const songList = await getSongList();
-        console.log('[DanceScreen] 받은 노래 목록:', songList);
 
         if (songList.length > 0) {
           setSongs(songList);
-          console.log('[DanceScreen] 노래 목록 설정 완료:', songList.length, '개');
         } else {
-          console.warn('[DanceScreen] API에서 노래 목록이 비어있습니다');
           Alert.alert('알림', 'API에서 노래 목록을 가져올 수 없습니다.');
         }
       } catch (error: any) {
-        console.error('[DanceScreen] 노래 목록 가져오기 실패:', error);
         Alert.alert(
           '오류',
           '노래 목록을 불러오는데 실패했습니다.\n\n' +
@@ -104,7 +99,6 @@ const DanceScreen = ({ navigation }: any) => {
       try {
         RNSoundPlayer.stop();
       } catch (e) {
-        console.log('Stop sound error:', e);
       }
     };
   }, []);
@@ -127,7 +121,6 @@ const DanceScreen = ({ navigation }: any) => {
           return;
         }
 
-        console.log('[DanceScreen] Playing audio:', audioUrl);
 
         if (audioUrl.startsWith('http')) {
           await RNSoundPlayer.playUrl(audioUrl);
@@ -139,7 +132,6 @@ const DanceScreen = ({ navigation }: any) => {
         setPlayingSongId(song.id);
       }
     } catch (error: any) {
-      console.error('[DanceScreen] 재생 오류:', error);
       Alert.alert('재생 오류', '오디오를 재생할 수 없습니다.');
       setPlayingSongId(null);
     }
@@ -151,7 +143,6 @@ const DanceScreen = ({ navigation }: any) => {
       RNSoundPlayer.stop();
       setPlayingSongId(null);
     } catch (e) {
-      console.log('Stop sound error:', e);
     }
 
     if (!selectedSongId) {

@@ -11,7 +11,6 @@ export async function getAuthToken(): Promise<string | null> {
 
 export async function likeFeed(feedId: number): Promise<any> { // ✅ feedId: number 추가
     const token = await getAuthToken();
-    console.log('[likeFeed] 요청:', feedId, 'token:', !!token);
 
     const res = await fetch(`${BASE_URL}/api/feeds/like/feed`, {
         method: 'POST',
@@ -24,7 +23,6 @@ export async function likeFeed(feedId: number): Promise<any> { // ✅ feedId: nu
     });
 
     const json = await res.json();
-    console.log('[likeFeed] 응답:', json);
 
     const code = json?.code ?? res.status;
 
@@ -32,13 +30,11 @@ export async function likeFeed(feedId: number): Promise<any> { // ✅ feedId: nu
         throw new Error(json?.msg ?? json?.message ?? '좋아요 실패');
     }
 
-    console.log('[likeFeed] 성공!');
     return json?.data ?? json;
 }
 
 export async function isLiked(feedId: number): Promise<any>{
     const token = await getAuthToken();
-    console.log('[isLiked] 요청:', feedId, 'token:', !!token);
 
     const res = await fetch(`${BASE_URL}/api/feeds/like/isliked`, {
         method: 'POST',
@@ -51,7 +47,6 @@ export async function isLiked(feedId: number): Promise<any>{
     });
 
     const json = await res.json();
-    console.log('[isLiked] 응답:', json);
 
     const code = json?.code ?? res.status;
 
@@ -59,13 +54,11 @@ export async function isLiked(feedId: number): Promise<any>{
         throw new Error(json?.msg ?? json?.message ?? '좋아요 조회 실패');
     }
 
-    console.log('[isLiked] 성공!');
     return json?.data ?? json;
 }
 
 export async function getListOfLike(feedId: number): Promise<any>{
     const token = await getAuthToken();
-    console.log('[getListOfLike] 요청:', feedId, 'token:', !!token);
 
     const res = await fetch(`${BASE_URL}/api/feeds/like/get_list_of_like`, {
         method: 'POST',
@@ -78,7 +71,6 @@ export async function getListOfLike(feedId: number): Promise<any>{
     });
 
     const json = await res.json();
-    console.log('[getListOfLike] 응답:', json);
 
     const code = json?.code ?? res.status;
 
@@ -86,6 +78,5 @@ export async function getListOfLike(feedId: number): Promise<any>{
         throw new Error(json?.msg ?? json?.message ?? '좋아요 조회 실패');
     }
 
-    console.log('[getListOfLike] 성공!');
     return json?.data ?? json;
 }

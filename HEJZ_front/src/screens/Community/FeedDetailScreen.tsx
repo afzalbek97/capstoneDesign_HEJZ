@@ -66,8 +66,6 @@ export default function FeedDetailScreen() {
   const params = route.params as any;
   const feedId = Number(params?.feedId);
 
-  console.log('[FeedDetail] 받은 params:', params);
-  console.log('[FeedDetail] feedId:', feedId);
 
   // 상태
   const [feedData, setFeedData] = useState<FeedItemDto | null>(null);
@@ -87,7 +85,6 @@ export default function FeedDetailScreen() {
   useEffect(() => {
     const loadFeedData = async () => {
       if (!feedId || isNaN(feedId)) {
-        console.error('[FeedDetail] 유효하지 않은 feedId:', feedId);
         Alert.alert('오류', '잘못된 피드 ID입니다.');
         (navigation as any).goBack();
         return;
@@ -95,11 +92,9 @@ export default function FeedDetailScreen() {
 
       try {
         setLoading(true);
-        console.log('[FeedDetail] feedId로 데이터 로드 시작:', feedId);
 
         // 1. 피드 데이터 가져오기
         const feed = await getFeed(feedId);
-        console.log('[FeedDetail] 피드 데이터:', feed);
         setFeedData(feed);
 
         // 2. ✅ userId 추출 및 username 가져오기
@@ -122,9 +117,7 @@ export default function FeedDetailScreen() {
               (userInfo as any)?.name ||
               `user${userId}`;
             setUsername(fetchedUsername);
-            console.log('[FeedDetail] username 로드 성공:', fetchedUsername);
           } catch (e) {
-            console.error('[FeedDetail] username 로드 실패:', e);
             setUsername(`user${userId}`);
           }
         } else {
@@ -145,10 +138,8 @@ export default function FeedDetailScreen() {
         const count = Array.isArray(likeList) ? likeList.length : 0;
         setLikeCount(count);
 
-        console.log('[FeedDetail] 좋아요 상태:', { isLiked: checkIsLiked, count });
 
       } catch (e: any) {
-        console.error('[FeedDetail] 데이터 로드 실패:', e?.message);
         Alert.alert('오류', e?.message ?? '피드를 불러올 수 없습니다.');
         (navigation as any).goBack();
       } finally {
@@ -179,7 +170,6 @@ export default function FeedDetailScreen() {
       })
       .filter((m: any) => !!m.url);
 
-    console.log('[FeedDetail] 처리된 미디어 목록:', result);
     return result;
   }, [feedData]);
 
@@ -192,7 +182,6 @@ export default function FeedDetailScreen() {
       const data = await getCommentsByFeed(feedId);
       setComments(data);
     } catch (e: any) {
-      console.error('댓글 로드 실패:', e);
     } finally {
       setLoadingComments(false);
     }
@@ -246,7 +235,6 @@ export default function FeedDetailScreen() {
     try {
       // 1. 좋아요 토글 API 호출
       await likeFeed(feedId);
-      console.log('[toggleLike] 좋아요 API 호출 성공');
 
       // 2. 좋아요 상태 확인 (true/false)
       const checkIsLiked = await isLiked(feedId);
@@ -259,10 +247,8 @@ export default function FeedDetailScreen() {
       setIsLikedState(checkIsLiked);
       setLikeCount(newLikeCount);
 
-      console.log(`[toggleLike] feedId=${feedId}, isLiked=${checkIsLiked}, likeCount=${newLikeCount}`);
 
     } catch (e: any) {
-      console.error('[toggleLike] 좋아요 실패:', e?.message);
       Alert.alert('알림', e?.message ?? '좋아요에 실패했어요.');
     }
   };
@@ -321,139 +307,10 @@ export default function FeedDetailScreen() {
               paused={false}
               muted={false}
               onError={(error) => {
-                console.error('[FeedDetail] Video 에러:', error);
                 Alert.alert('비디오 로드 실패', JSON.stringify(error));
               }}
-              onLoad={() => console.log('[FeedDetail] Video 로드 성공')}
-            />
-          ) : (
-            <Image
-              source={{ uri: firstMedia.url! }}
-              style={s.video}
-              resizeMode="cover"
-              onError={(error) => {
-                console.error('[FeedDetail] Image 에러:', error.nativeEvent.error);
-              }}
-              onLoad={() => console.log('[FeedDetail] Image 로드 성공')}
-            />
-          )
-        ) : (
-          <View style={s.fallback}>
-            <Text style={s.fallbackTxt}>미디어 없음</Text>
-          </View>
-        )}
-
-        {/* 그라디언트 */}
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={s.gradient} />
-
-        {/* ✅ 상단 닫기 버튼 (CommunityScreen 스타일) */}
-        <SafeAreaView style={s.topBar}>
-          <View style={s.topBarInner}>
-            <TouchableOpacity onPress={() => (navigation as any).goBack()} style={s.topBtn}>
-              <Text style={s.topBtnTxt}>←</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={confirmDelete} style={s.topBtn}>
-              <Text style={s.topBtnTxt}>삭제</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-
-        {/* ✅ 오른쪽 액션 버튼 (CommunityScreen 스타일) */}
-        <View style={s.actions}>
-          <TouchableOpacity onPress={toggleLike} style={s.actionBtn} activeOpacity={0.8}>
-            <Image
-              source={isLikedState ? Heart : HeartOutline}
-              style={s.icon}
-              resizeMode="contain"
-            />
-            <Text style={s.count}>{likeCount}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={s.actionBtn} onPress={() => setShowComments(true)} activeOpacity={0.8}>
-            <Image source={CommentIcon} style={s.icon} resizeMode="contain" />
-            <Text style={s.count}>{comments.length || (feedData as any).commentCount || 0}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ✅ 하단 텍스트 (CommunityScreen 스타일) */}
-        <View style={s.bottomText}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={s.title}>@{username || 'unknown'}</Text>
-          </View>
-          {!!content && (
-            <Text style={s.prompt} numberOfLines={2}>
-              {content}
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {/* ✅ 댓글 모달 (CommunityScreen 스타일) */}
-      <Modal
-        visible={showComments}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowComments(false)}
-      >
-        <View style={s.bottomSheet}>
-          <View style={s.sheetBar} />
-          <Text style={s.commentHeader}>
-            댓글 {loadingComments ? '불러오는 중…' : `${comments.length}개`}
-          </Text>
-
-          <FlatList
-            data={comments}
-            keyExtractor={(item) => String(item.id)}
-            style={{ maxHeight: SCREEN_H * 0.45 }}
-            ListEmptyComponent={
-              <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                <Text style={{ color: '#6B7280' }}>첫 댓글을 남겨보세요!</Text>
-              </View>
-            }
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onLongPress={() => handleDeleteComment(item.id)}
-                delayLongPress={400}
-                activeOpacity={0.8}
-                style={{ paddingVertical: 8 }}
-              >
-                <Text style={{ fontSize: 13, color: '#374151', marginBottom: 2 }}>
-                  @{item.username} · {new Date(item.createdAt).toLocaleDateString()}
-                </Text>
-                <Text style={{ fontSize: 15, color: '#111827' }}>{item.comment}</Text>
-              </TouchableOpacity>
-            )}
-            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-            contentContainerStyle={{ paddingHorizontal: 4 }}
-          />
-
-          <View style={s.commentRow}>
-            <TextInput
-              style={s.commentInput}
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder="댓글을 입력하세요"
-              placeholderTextColor="#9CA3AF"
-              multiline
-            />
-            <TouchableOpacity
-              onPress={handleCreateComment}
-              disabled={sending || !commentText.trim()}
-              style={[s.sendBtn, (sending || !commentText.trim()) && { opacity: 0.5 }]}
-              activeOpacity={0.9}
-            >
-              <Text style={s.sendTxt}>{sending ? '전송중' : '등록'}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity onPress={() => setShowComments(false)} style={s.closeBtn}>
-            <Text style={s.closeTxt}>닫기</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </View>
-  );
-}
+              onLoad={() =>              }}
+              onLoad={() =>}
 
 // ✅ CommunityScreen과 동일한 스타일
 const s = StyleSheet.create({

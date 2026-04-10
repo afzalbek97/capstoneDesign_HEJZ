@@ -92,7 +92,6 @@ export default function RecordScreen({ route }: Props) {
 
       try {
         setLoadingData(true);
-        console.log('🔍 저장된 선택 조회 중:', songId);
 
         const savedData = await getSongSelection(songId);
         if (!savedData) {
@@ -100,7 +99,6 @@ export default function RecordScreen({ route }: Props) {
           return;
         }
 
-        console.log('✅ 저장된 데이터:', savedData);
 
         // 오디오 URL 설정
         setAudioUrl(savedData.audioUrl);
@@ -122,10 +120,8 @@ export default function RecordScreen({ route }: Props) {
         })).filter(seg => seg.motionUrl);
 
         setMotionSegments(segments);
-        console.log('✅ 구간별 안무 준비 완료:', segments.length);
 
       } catch (e: any) {
-        console.error('❌ 데이터 로드 실패:', e);
         Alert.alert('오류', e?.message ?? '저장된 데이터를 불러올 수 없습니다.');
       } finally {
         setLoadingData(false);
@@ -196,9 +192,6 @@ export default function RecordScreen({ route }: Props) {
     // 구간을 찾았고, 인덱스가 바뀌면 안무 변경
     if (targetIndex !== -1 && targetIndex !== currentSegmentIndex) {
       const seg = motionSegments[targetIndex];
-      console.log('🎭 구간 변경:', targetIndex + 1, '/', motionSegments.length);
-      console.log('   시간:', seg.startTime.toFixed(2), '~', seg.endTime.toFixed(2));
-      console.log('   가사:', seg.lyrics || '(가사 없음)');
 
       setCurrentSegmentIndex(targetIndex);
 
@@ -412,7 +405,6 @@ export default function RecordScreen({ route }: Props) {
         video
         audio
         onError={(e) => {
-          console.log('Camera onError:', e);
           Alert.alert('카메라 오류', String(e));
         }}
       />
@@ -436,7 +428,6 @@ export default function RecordScreen({ route }: Props) {
           }
         }}
         onEnd={() => {
-          console.log('🎵 오디오 종료');
           setPlayAudio(false);
         }}
         style={{ width: 0, height: 0 }}
@@ -457,48 +448,9 @@ export default function RecordScreen({ route }: Props) {
             paused={isPaused || !overlayOn}
             useTextureView
             onError={(e) => {
-              console.log('❌ 오버레이 비디오 에러:', e);
               Alert.alert('안무 비디오 오류', '안무 영상을 재생할 수 없습니다.');
             }}
-            onLoad={() => console.log('✅ 안무 비디오 로드:', currentSegment.motionUrl)}
-            onLoadStart={() => console.log('🔄 안무 비디오 로딩 시작...')}
-          />
-          <View style={s.overlayBadge}>
-            <Text style={s.badgeText}>안무 {currentSegmentIndex + 1}</Text>
-          </View>
-        </View>
-      )}
-
-      {/* 하단 컨트롤 */}
-      <View style={s.controls}>
-        <TouchableOpacity style={[s.btn, { backgroundColor: '#64748b' }]} onPress={resetAll}>
-          <Text style={s.btnTxt}>초기화</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            s.btn,
-            { backgroundColor: !recording ? '#ef4444' : isPaused ? '#22c55e' : '#f59e0b' }
-          ]}
-          onPress={togglePauseResume}
-          disabled={isStarting}
-        >
-          <Text style={s.btnTxt}>
-            {!recording ? (isStarting ? '시작중…' : '● 시작') : (isPaused ? '재개' : '일시정지')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[s.btn, { backgroundColor: recording ? '#111827' : '#374151' }]}
-          onPress={stopRec}
-          disabled={!recording}
-        >
-          <Text style={s.btnTxt}>■ 완료</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
+            onLoad={() =>}
 
 const s = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: '#000' },

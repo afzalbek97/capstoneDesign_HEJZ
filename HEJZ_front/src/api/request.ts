@@ -6,7 +6,6 @@ import { getToken } from '../auth/token';
 let __loggedBase = false;
 function logBaseOnce() {
   if (!__loggedBase) {
-    console.log('[API] BASE_URL =>', BASE_URL);
     __loggedBase = true;
   }
 }

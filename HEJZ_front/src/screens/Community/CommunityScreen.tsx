@@ -49,23 +49,12 @@ function pickFirstMediaUrlLocal(item: any): string | null {
     : [];
 
   if (arr.length === 0) {
-    console.log('[pickFirstMediaUrlLocal] 미디어 없음:', {
-      hasMedia: !!item?.media,
-      hasImages: !!item?.images,
-      media: item?.media,
-      images: item?.images
-    });
     return null;
   }
 
   const first = arr.slice().sort((a: any, b: any) => (a?.ord ?? 0) - (b?.ord ?? 0))[0];
   const url = normalizeAbsUrl(first?.url ?? null);
 
-  console.log('[pickFirstMediaUrlLocal] URL 생성:', {
-    originalUrl: first?.url,
-    normalizedUrl: url,
-    BASE_URL
-  });
 
   return url;
 }
@@ -126,10 +115,6 @@ export default function CommunityScreen({ navigation }: any) {
         const resp = await fetcher({ limit: 10, cursor: reset ? null : cursor });
 
         if (resp.items.length > 0) {
-          console.log(
-            `[CommunityScreen/${tab}] First item (BEFORE getFeed):`,
-            JSON.stringify(resp.items[0], null, 2)
-          );
         }
 
         // ✅ 각 피드의 상세 정보를 가져와서 미디어 정보 추가
@@ -139,13 +124,11 @@ export default function CommunityScreen({ navigation }: any) {
             const feedId = Number(item.id);
 
             if (!Number.isFinite(feedId) || feedId <= 0) {
-              console.warn(`[CommunityScreen] 유효하지 않은 feedId:`, item);
               return item; // 유효하지 않으면 원본 그대로 반환
             }
 
             try {
               const feedDetail = await getFeed(feedId);
-              console.log(`[CommunityScreen] getFeed(${feedId}) 성공:`, feedDetail);
 
               // 상세 정보의 images/media를 원본 아이템에 추가
               return {
@@ -154,13 +137,11 @@ export default function CommunityScreen({ navigation }: any) {
                 media: (feedDetail as any).media || (feedDetail as any).images || item.media || null,
               };
             } catch (e: any) {
-              console.error(`[CommunityScreen] getFeed(${feedId}) 실패:`, e?.message);
               return item; // 실패하면 원본 아이템 그대로 사용
             }
           })
         );
 
-        console.log('[CommunityScreen] Enriched first item:', enrichedItems[0]);
 
         const filtered = enrichedItems.filter((it) => !blockedRef.current.has((it as any).userId));
 
@@ -254,7 +235,6 @@ export default function CommunityScreen({ navigation }: any) {
       const list = await getCommentsByFeed(feedId);
       setCommentList(list);
     } catch (e: any) {
-      console.error('[comments] load fail:', e?.message ?? e);
       Alert.alert('알림', e?.message ?? '댓글을 불러오지 못했어요.');
     } finally {
       setLoadingComments(false);
@@ -370,15 +350,6 @@ export default function CommunityScreen({ navigation }: any) {
     const isVideo = isVideoUrl(mediaUrl);
 
     // 🔍 디버깅 로그
-    console.log('[CommunityScreen] renderItem:', {
-      index,
-      feedId: (item as any).id,
-      images: (item as any).images,
-      media: (item as any).media,
-      mediaUrl,
-      isVideo,
-      BASE_URL,
-    });
 
     const rawUserId =
       (item as any)?.userId ??
@@ -418,28 +389,9 @@ export default function CommunityScreen({ navigation }: any) {
               paused={!playing}
               muted={false}
               onError={(error) => {
-                console.error('[CommunityScreen] Video 에러:', error);
               }}
-              onLoad={() => console.log('[CommunityScreen] Video 로드 성공:', mediaUrl)}
-            />
-          ) : (
-            <Image
-              source={{ uri: mediaUrl }}
-              style={styles.video}
-              resizeMode="cover"
-              onError={(error) => {
-                console.error('[CommunityScreen] Image 에러:', error.nativeEvent.error);
-              }}
-              onLoad={() => console.log('[CommunityScreen] Image 로드 성공:', mediaUrl)}
-            />
-          )
-        ) : (
-          <TouchableOpacity
-            style={styles.fallback}
-            onPress={() => {
-              // 미디어가 없어도 FeedDetail로 이동하면 상세 정보 로드됨
-              navigation.navigate('FeedDetail' as never, { feedId: (item as any).id } as never);
-            }}
+              onLoad={() =>              }}
+              onLoad={() =>            }}
           >
             <Text style={styles.fallbackTxt}>미디어를 불러올 수 없습니다</Text>
             <Text style={[styles.fallbackTxt, { fontSize: 12, marginTop: 8 }]}>

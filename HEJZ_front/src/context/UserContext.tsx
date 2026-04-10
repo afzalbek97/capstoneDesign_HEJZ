@@ -8,10 +8,10 @@ type UserInfo = {
 };
 
 const defaultUser: UserInfo = {
-  name: '사용자 님',
+  name: '',
   bio: '',
-  username: 'jihye_',
-  profileImage:'',
+  username: '',
+  profileImage: '',
 };
 
 const UserContext = createContext<{

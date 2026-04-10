@@ -60,7 +60,6 @@ export async function getTimestampLyrics(taskId: string, audioId: string): Promi
   try {
     const headers = await getAuthHeaders();
 
-    console.log('[getTimestampLyrics] API 호출 시작:', { taskId, audioId });
 
     const response = await fetch(`${BASE_URL}/api/suno/get_timestamplyrics`, {
       method: 'POST',
@@ -71,20 +70,16 @@ export async function getTimestampLyrics(taskId: string, audioId: string): Promi
       body: JSON.stringify({ taskId, audioId }),
     });
 
-    console.log('[getTimestampLyrics] Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[getTimestampLyrics] Error response:', errorText);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('[getTimestampLyrics] Response data:', JSON.stringify(result, null, 2));
 
     return result;
   } catch (error) {
-    console.error('[getTimestampLyrics] 에러:', error);
     throw error;
   }
 }
@@ -97,7 +92,6 @@ export async function getSongList(): Promise<Song[]> {
   try {
     const headers = await getAuthHeaders();
 
-    console.log('[getSongList] API 호출 시작');
 
     const response = await fetch(`${BASE_URL}/api/suno/getSongs`, {
       method: 'GET',
@@ -106,38 +100,30 @@ export async function getSongList(): Promise<Song[]> {
       },
     });
 
-    console.log('[getSongList] Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[getSongList] Error response:', errorText);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('[getSongList] Response data:', JSON.stringify(result, null, 2));
 
     if (!result) {
-      console.warn('[getSongList] 응답이 비어있습니다');
       return [];
     }
 
     // getSongs는 직접 배열을 반환
     if (Array.isArray(result)) {
-      console.log('[getSongList] 배열 데이터:', result.length, '개');
       return result.map((song: SongResponse) => parseSong(song));
     }
 
     // ApiResponse 형태로 감싸져 있는 경우
     if (result.data && Array.isArray(result.data)) {
-      console.log('[getSongList] result.data 배열:', result.data.length, '개');
       return result.data.map((song: SongResponse) => parseSong(song));
     }
 
-    console.warn('[getSongList] 예상하지 못한 응답 형식');
     return [];
   } catch (error) {
-    console.error('[getSongList] 에러:', error);
     throw error;
   }
 }
@@ -151,7 +137,6 @@ export async function getLyrics(songId: string): Promise<string> {
   try {
     const headers = await getAuthHeaders();
 
-    console.log('[getLyrics] API 호출 시작:', songId);
 
     const response = await fetch(`${BASE_URL}/api/song/getlyrics`, {
       method: 'POST',
@@ -162,16 +147,13 @@ export async function getLyrics(songId: string): Promise<string> {
       body: JSON.stringify({ songId }),
     });
 
-    console.log('[getLyrics] Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[getLyrics] Error response:', errorText);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('[getLyrics] Response data:', JSON.stringify(result, null, 2));
 
     // ApiResponse<Object> 구조 처리
     if (result.data) {
@@ -191,7 +173,6 @@ export async function getLyrics(songId: string): Promise<string> {
 
     return '';
   } catch (error) {
-    console.error('[getLyrics] 에러:', error);
     throw error;
   }
 }

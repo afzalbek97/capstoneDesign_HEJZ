@@ -50,7 +50,6 @@ const SignUpScreen = () => {
       navigation.replace?.('Login') ?? navigation.goBack();
     } catch (err: any) {
       Alert.alert('회원가입 실패', err?.message ?? '잠시 후 다시 시도해줘');
-      console.log('signup error:', err);
     } finally {
       setLoading(false);
     }

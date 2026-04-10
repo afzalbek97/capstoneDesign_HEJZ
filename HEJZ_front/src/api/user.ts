@@ -96,8 +96,6 @@ function extractPayloadAndMaybeThrow(raw: string, status: number) {
 export async function fetchMyProfile(): Promise<UserProfile> {
   const token = await getToken();
   const url = `${BASE_URL}${ME_PATH}`;
-  console.log('[myinfo] token exists?', !!token);
-  console.log('[myinfo] URL =', url);
 
   const res = await fetch(url, {
     method: 'GET',
@@ -112,16 +110,13 @@ export async function fetchMyProfile(): Promise<UserProfile> {
     // HTTP 에러
     try {
       const j = raw ? JSON.parse(raw) : null;
-      console.log('[myinfo] error body =', j);
       throw new Error(j?.msg || j?.message || `HTTP ${res.status}`);
     } catch {
-      console.log('[myinfo] error raw =', raw);
       throw new Error(raw || `HTTP ${res.status}`);
     }
   }
 
   const payload = extractPayloadAndMaybeThrow(raw, res.status);
-  console.log('[myinfo] payload =', payload);
 
   const profile: UserProfile = mapToUserProfile(payload);
 
@@ -139,7 +134,6 @@ export async function fetchMyProfile(): Promise<UserProfile> {
 }
 
 export async function fetchUserInfoById(userId: number): Promise<PublicUser> {
-  console.log(`[fetchUserInfoById] 요청: userId=${userId}`);
 
   const keys = ['auth.token', 'token', 'accessToken', 'jwt'];
   const pairs = await AsyncStorage.multiGet(keys);
@@ -158,26 +152,21 @@ export async function fetchUserInfoById(userId: number): Promise<PublicUser> {
   let json: any = {};
   try {
     json = await res.json();
-    console.log(`[fetchUserInfoById] 응답 (userId=${userId}):`, JSON.stringify(json, null, 2));
   } catch (e) {
-    console.log(`[fetchUserInfoById] JSON 파싱 실패 (userId=${userId}):`, e);
   }
 
   const code = json?.code ?? json?.status ?? json?.statusCode ?? res.status;
   if (code !== 200) {
     const msg = json?.message ?? json?.msg ?? `HTTP ${res.status}`;
-    console.log(`[fetchUserInfoById] 에러 (userId=${userId}):`, msg);
     throw new Error(msg);
   }
 
   const userData = (json?.data ?? json) as PublicUser;
-  console.log(`[fetchUserInfoById] 성공 (userId=${userId}):`, userData.username);
   return userData;
 }
 
 // fetchUserPublicByUsername도 추가 (누락된 함수)
 export async function fetchUserPublicByUsername(username: string, userId?: number): Promise<PublicUser> {
-  console.log(`[fetchUserPublicByUsername] 요청: username=${username}, userId=${userId}`);
 
   const keys = ['auth.token', 'token', 'accessToken', 'jwt'];
   const pairs = await AsyncStorage.multiGet(keys);
@@ -199,9 +188,7 @@ export async function fetchUserPublicByUsername(username: string, userId?: numbe
   let json: any = {};
   try {
     json = await res.json();
-    console.log(`[fetchUserPublicByUsername] 응답:`, JSON.stringify(json, null, 2));
   } catch (e) {
-    console.log(`[fetchUserPublicByUsername] JSON 파싱 실패:`, e);
   }
 
   const code = json?.code ?? json?.status ?? json?.statusCode ?? res.status;

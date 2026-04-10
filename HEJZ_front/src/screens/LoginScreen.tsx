@@ -34,7 +34,6 @@ export default function LoginScreen({ navigation }: any) {
       } else {
         Alert.alert('로그인 실패', msg || '서버 오류가 발생했어요.');
       }
-      console.log('[LOGIN ERROR]', e);
     } finally {
       setLoading(false);
     }

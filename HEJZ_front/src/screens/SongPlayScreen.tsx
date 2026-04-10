@@ -14,10 +14,10 @@ import lyricsData from '../../src/assets/Document/Lyrics.json';
 import SoundPlayer from 'react-native-sound-player';
 
 const songs = [
-  { id: '1', title: '나는야 장지혜야', file: 'song1' },
-  { id: '2', title: '영은아 YOUNG하게 살자', file: 'song3' },
-  { id: '3', title: '아프잘 아프지마', file: 'song2' },
-  { id: '4', title: '혜미가 아니라 해미라구요', file: 'song4' },
+  { id: '1', title: 'Sample Song 1', file: 'song1' },
+  { id: '2', title: 'Sample Song 2', file: 'song3' },
+  { id: '3', title: 'Sample Song 3', file: 'song2' },
+  { id: '4', title: 'Sample Song 4', file: 'song4' },
 ];
 
 const SongPlayScreen = () => {
@@ -41,7 +41,6 @@ const SongPlayScreen = () => {
       SoundPlayer.playSoundFile(file, 'mp3');
       setIsPlaying(true);
     } catch (e) {
-      console.log('재생 오류:', e);
     }
   };
 
@@ -50,7 +49,6 @@ const SongPlayScreen = () => {
       SoundPlayer.stop();
       setIsPlaying(false);
     } catch (e) {
-      console.log('정지 오류:', e);
     }
   };
 
@@ -95,7 +93,6 @@ const SongPlayScreen = () => {
           setCurrentLyric(currentLine?.text || '');
         }
       } catch (e) {
-        console.log('getInfo 실패:', e);
       }
     }, 400);
 

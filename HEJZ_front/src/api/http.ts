@@ -38,8 +38,6 @@ export async function authFetch(
     try { json = raw ? JSON.parse(raw) : null; } catch { json = null; }
 
     if (!res.ok) {
-      // ★ 실패 상세 로그
-      console.log('[authFetch:ERROR]', { tag, url, status: res.status, raw });
       const msg =
         (json && (json as any).message) ||
         raw ||
@@ -52,15 +50,8 @@ export async function authFetch(
       throw err;
     }
 
-    const data = (json && (json as any).data != null) ? (json as any).data : json;
-    // 성공 로그 (원하면 주석)
-    // console.log('[authFetch:OK]', { tag, url, hasData: !!data });
-    return data;
+    return (json && (json as any).data != null) ? (json as any).data : json;
   } catch (e: any) {
-    // 네트워크 자체 실패
-    if (!e?.status) {
-      console.log('[authFetch:NETWORK_FAIL]', { tag, url, message: e?.message });
-    }
     throw e;
   }
 }

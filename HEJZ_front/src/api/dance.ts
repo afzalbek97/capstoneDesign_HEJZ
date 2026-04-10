@@ -88,7 +88,6 @@ export async function analyzeLyrics(
     selectedGenre,
   };
 
-  console.log('[analyzeLyrics] REQUEST =', JSON.stringify(body));
 
   const res = await fetch(`${BASE_URL}/api/emotion/analyze`, {
     method: 'POST',
@@ -97,8 +96,6 @@ export async function analyzeLyrics(
   });
 
   const text = await res.text();
-  console.log('[analyzeLyrics] STATUS =', res.status);
-  console.log('[analyzeLyrics] RESPONSE =', text);
 
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
 
@@ -123,7 +120,6 @@ export async function analyzeLyricsByTwoLines(
     selectedGenre: genre,
   };
 
-  console.log('[analyzeLyricsByTwoLines] REQUEST =', JSON.stringify(payload));
 
   const res = await fetch(`${BASE_URL}/api/emotion/analyze`, {
     method: 'POST',
@@ -132,8 +128,6 @@ export async function analyzeLyricsByTwoLines(
   });
 
   const text = await res.text();
-  console.log('[analyzeLyricsByTwoLines] STATUS =', res.status);
-  console.log('[analyzeLyricsByTwoLines] RESPONSE =', text);
 
   if (!res.ok) throw new Error(`HTTP ${res.status} ${text}`);
 
@@ -149,8 +143,6 @@ export async function analyzeLyricsByTwoLines(
 export async function saveFinalSelections(motionIds: string[]): Promise<string> {
   const headers = await getAuthHeaders();
 
-  console.log('[saveFinalSelections] 최종 선택 저장 시작');
-  console.log('[saveFinalSelections] motionIds:', motionIds);
 
   const res = await fetch(`${BASE_URL}/api/emotion/selections/save`, {
     method: 'POST',
@@ -159,8 +151,6 @@ export async function saveFinalSelections(motionIds: string[]): Promise<string> 
   });
 
   const text = await res.text();
-  console.log('[saveFinalSelections] STATUS =', res.status);
-  console.log('[saveFinalSelections] RESPONSE =', text);
 
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
 
@@ -180,8 +170,6 @@ export async function saveSongSelection(
   songSelection: SongSelectionDto
 ): Promise<string> {
   try {
-    console.log('[saveSongSelection] 로컬 저장 시작');
-    console.log('[saveSongSelection] 데이터:', JSON.stringify(songSelection));
 
     // AsyncStorage에 곡별로 저장
     const key = `song_selection_${songSelection.songId}`;
@@ -196,7 +184,6 @@ export async function saveSongSelection(
       await AsyncStorage.setItem('saved_songs_list', JSON.stringify(savedSongs));
     }
 
-    console.log('[saveSongSelection] ✅ 로컬 저장 완료');
 
     // 서버에도 motionIds만 저장
     const allMotionIds = songSelection.selections
@@ -206,15 +193,12 @@ export async function saveSongSelection(
     if (allMotionIds.length > 0) {
       try {
         await saveFinalSelections(allMotionIds);
-        console.log('[saveSongSelection] ✅ 서버 저장 완료');
       } catch (e) {
-        console.warn('[saveSongSelection] ⚠️ 서버 저장 실패 (로컬에는 저장됨):', e);
       }
     }
 
     return '저장 완료';
   } catch (e: any) {
-    console.error('[saveSongSelection] ❌ 저장 실패:', e);
     throw new Error(e?.message || '저장 중 오류가 발생했습니다.');
   }
 }
@@ -224,21 +208,17 @@ export async function saveSongSelection(
  * ========================= */
 export async function getSongSelection(songId: string): Promise<SongSelectionDto | null> {
   try {
-    console.log('[getSongSelection] songId =', songId);
 
     const key = `song_selection_${songId}`;
     const data = await AsyncStorage.getItem(key);
 
     if (!data) {
-      console.log('[getSongSelection] 저장된 선택이 없음');
       return null;
     }
 
     const json = JSON.parse(data);
-    console.log('[getSongSelection] ✅ 로컬에서 불러옴');
     return json as SongSelectionDto;
   } catch (e: any) {
-    console.error('[getSongSelection] ❌ 조회 실패:', e);
     return null;
   }
 }
@@ -257,7 +237,6 @@ export async function getAllSavedSongs(): Promise<SongSelectionDto[]> {
 
     return results.filter(Boolean) as SongSelectionDto[];
   } catch (e) {
-    console.error('[getAllSavedSongs] ❌ 조회 실패:', e);
     return [];
   }
 }
@@ -269,7 +248,6 @@ export async function getAllSavedSongs(): Promise<SongSelectionDto[]> {
 export async function getMotionUrl(motionId: string): Promise<string> {
   const headers = await getAuthHeaders();
 
-  console.log('[getMotionUrl] motionId =', motionId);
 
   const res = await fetch(`${BASE_URL}/api/motion/${encodeURIComponent(motionId)}`, {
     method: 'GET',
@@ -277,8 +255,6 @@ export async function getMotionUrl(motionId: string): Promise<string> {
   });
 
   const text = await res.text();
-  console.log('[getMotionUrl] STATUS =', res.status);
-  console.log('[getMotionUrl] RESPONSE =', text);
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}: ${text}`);
@@ -288,7 +264,6 @@ export async function getMotionUrl(motionId: string): Promise<string> {
   const trimmedText = text.trim().replace(/^["']|["']$/g, '');
 
   if (trimmedText.startsWith('http')) {
-    console.log('[getMotionUrl] ✅ URL =', trimmedText);
     return trimmedText;
   }
 
@@ -296,15 +271,12 @@ export async function getMotionUrl(motionId: string): Promise<string> {
   try {
     const json = JSON.parse(text);
     if (json.videoUrl?.startsWith('http')) {
-      console.log('[getMotionUrl] ✅ URL (JSON) =', json.videoUrl);
       return json.videoUrl;
     }
     if (json.url?.startsWith('http')) {
-      console.log('[getMotionUrl] ✅ URL (JSON.url) =', json.url);
       return json.url;
     }
   } catch (e) {
-    console.error('[getMotionUrl] JSON 파싱 실패:', e);
   }
 
   throw new Error('유효한 URL을 찾을 수 없습니다: ' + text);
@@ -317,7 +289,6 @@ export async function getMotionUrl(motionId: string): Promise<string> {
 export async function getMotionUrls(motionIds: string[]): Promise<Map<string, string>> {
   const headers = await getAuthHeaders();
 
-  console.log('[getMotionUrls] motionIds =', motionIds);
 
   try {
     // 백엔드 API 사용 시도
@@ -328,8 +299,6 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
     });
 
     const text = await res.text();
-    console.log('[getMotionUrls] STATUS =', res.status);
-    console.log('[getMotionUrls] RESPONSE =', text);
 
     if (res.ok) {
       const urls: string[] = JSON.parse(text);
@@ -341,11 +310,9 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
         }
       });
 
-      console.log('[getMotionUrls] ✅ 일괄 조회 성공');
       return map;
     }
   } catch (e) {
-    console.warn('[getMotionUrls] ⚠️ 일괄 조회 실패, 개별 조회로 전환:', e);
   }
 
   // 폴백: 개별 조회
@@ -356,12 +323,10 @@ export async function getMotionUrls(motionIds: string[]): Promise<Map<string, st
         const url = await getMotionUrl(mid);
         map.set(mid, url);
       } catch (e) {
-        console.error(`[getMotionUrls] fail: ${mid}`, e);
       }
     })
   );
 
-  console.log('[getMotionUrls] ✅ 개별 조회 완료');
   return map;
 }
 

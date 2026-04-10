@@ -38,10 +38,8 @@ const SunoPreviewScreen = () => {
             model: 'V3_5',
             callBackUrl: callBackUrl+'/api/suno/callback',
           });
-          console.log('✅ 생성 요청 성공:', response.data);
           Alert.alert('요청 성공', '서버에서 곡 생성 요청을 성공적으로 보냈어요.');
         } catch (error) {
-          console.error('🚫 요청 실패:', error);
           Alert.alert('요청 실패', '곡 생성 요청 중 오류가 발생했어요.');
         }
       };
@@ -56,16 +54,11 @@ const SunoPreviewScreen = () => {
             setAudioId(song.audioId);
             setLyrics(song.prompt);
 
-            console.log(song);
-            console.log(title);
-            console.log(lyrics);
-            console.log(sourceAudioUrl);
 
             lyricsAnalyze();
 
 //             Alert.alert('불러오기 완료', '🎵 '+song.title+' 를 재생할 수 있어요!');
           } catch (err) {
-            console.error('곡 목록 불러오기 실패:', err);
           }
         };
 
@@ -75,7 +68,6 @@ const SunoPreviewScreen = () => {
           const parsedLyrics = cleanedLyrics.replace(/\n/g, "\\n");
           setParseLyrics(parsedLyrics); // 필요하면 화면에 띄우기용
 
-          console.log('🔹 파싱된 가사:\n', parsedLyrics);
 
           const res = await axios.post(
             'https://9f1c-115-20-243-238.ngrok-free.app/api/emotion/analyze',
@@ -87,9 +79,7 @@ const SunoPreviewScreen = () => {
             }
           );
 
-          console.log('🔸 분석 결과:', res.data);
         } catch (err) {
-          console.error('가사 분석 실패: ', err);
         }
       };
 
@@ -121,7 +111,6 @@ const SunoPreviewScreen = () => {
             setIsLoading(false);
           }
         } catch (e) {
-          console.log('getInfo error', e);
         }
       }, 500);
     } catch (e) {
@@ -134,7 +123,6 @@ const SunoPreviewScreen = () => {
       SoundPlayer.stop();
       if (intervalRef.current) clearInterval(intervalRef.current);
     } catch (e) {
-      console.log('정지 실패', e);
     }
   };
 

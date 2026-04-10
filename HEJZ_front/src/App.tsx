@@ -1,9 +1,7 @@
 import '../src/polyfills/urlsearchparams';
-import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-// import * as Font from 'expo-font';
 import { API_URL, API_SUNO_KEY } from '@env';
 import { ApiContext } from './context/ApiContext';
 import { UserProvider } from './context/UserContext';
@@ -18,55 +16,32 @@ import SelectScreen from './screens/SelectScreen';
 import SignUpScreen from './screens/SignUpScreen';
 import SongPlayScreen from './screens/SongPlayScreen';
 import SunoPreviewScreen from './screens/SunoPreviewScreen';
-import TestScreen from './TestScreen';
-import LoginScreen from './screens/LoginScreen'
+import LoginScreen from './screens/LoginScreen';
 
-enableScreens(); 
+enableScreens();
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
-//   const [fontsLoaded, setFontsLoaded] = useState(false);
-//
-//   useEffect(() => {
-//     Font.loadAsync({
-//       Ramche: require('./assets/Ramche.ttf'),
-//     }).then(() => setFontsLoaded(true));
-//   }, []);
-//
-//   if (!fontsLoaded) {
-//     return (
-//       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-//         <Text>폰트 불러오는 중...</Text>
-//       </View>
-//     );
-//   }
-
   return (
-          <ApiContext.Provider value={{ apiUrl: API_URL, apiKey: API_SUNO_KEY }}>
-            <UserProvider>
-              <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
-                  <Stack.Screen name="Login" component={LoginScreen} />
-                  <Stack.Screen name="Main" component={MainScreen} />
-                  <Stack.Screen name="Stats" component={StatsScreen} />
-                  <Stack.Screen name="Select" component={SelectScreen} />
-                  <Stack.Screen name="SignUp" component={SignUpScreen} />
-                  {/* 각 기능 스택 연결 */}
-                  <Stack.Screen name="Music" component={SongScreen} />
-                  <Stack.Screen name="Dance" component={DanceNavigator} />
-                  <Stack.Screen name="Community" component={CommunityNavigator} />
-                  <Stack.Screen name="SongPlay" component={SongPlayScreen} />
-                  <Stack.Screen name="Test" component={TestScreen} />
-
-                  <Stack.Screen name="SunoPreviewScreen" component={SunoPreviewScreen} />
-
-
-                </Stack.Navigator>
-
-              </NavigationContainer>
-            </UserProvider>
-          </ApiContext.Provider>
+    <ApiContext.Provider value={{ apiUrl: API_URL, apiKey: API_SUNO_KEY }}>
+      <UserProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Main" component={MainScreen} />
+            <Stack.Screen name="Stats" component={StatsScreen} />
+            <Stack.Screen name="Select" component={SelectScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+            <Stack.Screen name="Music" component={SongScreen} />
+            <Stack.Screen name="Dance" component={DanceNavigator} />
+            <Stack.Screen name="Community" component={CommunityNavigator} />
+            <Stack.Screen name="SongPlay" component={SongPlayScreen} />
+            <Stack.Screen name="SunoPreviewScreen" component={SunoPreviewScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
+    </ApiContext.Provider>
   );
 };
 

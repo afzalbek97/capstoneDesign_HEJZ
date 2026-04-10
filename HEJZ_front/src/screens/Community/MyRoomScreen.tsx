@@ -166,7 +166,6 @@ export default function MyProfileScreen({navigation, route}:any) {
             [SK.following, String(mapped.following ?? 0)],
           ]);
         } catch (e: any) {
-          console.log('fetchMyProfile failed:', e?.message);
         }
 
         // 3) API 실패 시 AsyncStorage fallback
@@ -236,11 +235,9 @@ export default function MyProfileScreen({navigation, route}:any) {
     const data = await fetchMyFeedsSafe({ limit: 24, cursor: cur });
     
     // ✅ 원본 데이터 확인
-    console.log('[MyProfile] API 응답 원본:', JSON.stringify(data, null, 2));
     
     const safe: FeedItemDto[] = (data?.items ?? []).map((it: any) => {
       // ✅ 각 아이템의 id 확인
-      console.log('[MyProfile] 아이템 id:', it?.feedId, it);
       
       return {
         ...it,
@@ -248,7 +245,6 @@ export default function MyProfileScreen({navigation, route}:any) {
       };
     });
 
-    console.log('[MyProfile] 변환된 데이터:', safe);
     
     if (reset) setItems(safe);
     else setItems(prev => [...prev, ...safe]);
@@ -334,10 +330,8 @@ export default function MyProfileScreen({navigation, route}:any) {
     const feedId = item.id ?? (item as any).feedId ?? (item as any).feed_id;
   
     // ✅ id 확인 로그
-    console.log('[MyProfile renderItem] feedId:', feedId, 'item:', item);
     
     if (!feedId) {
-      console.error('[MyProfile] feedId가 없는 아이템:', item);
       return null; // id가 없으면 렌더링 안 함
     }
 
@@ -346,7 +340,6 @@ export default function MyProfileScreen({navigation, route}:any) {
         style={s.gridItem}
         activeOpacity={0.9}
         onPress={() => {
-          console.log('[MyProfile] 네비게이션 - feedId:', feedId);
           (navigation as any).navigate('FeedDetail', {
             feedId: item.id ?? (item as any).feedId ?? (item as any).feed_id,
             content: item.content,

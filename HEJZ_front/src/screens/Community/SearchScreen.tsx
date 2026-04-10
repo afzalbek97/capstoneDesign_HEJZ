@@ -122,10 +122,7 @@ export default function SearchScreen({ navigation }: any) {
         const d = await searchAll({ keyword: q.trim(), limit });
 
         // 🔍 디버깅: 실제 응답 구조 확인
-        console.log('=== 검색 결과 ===');
-        console.log('전체:', JSON.stringify(d, null, 2));
         if (Array.isArray(d) && d.length > 0) {
-          console.log('첫 번째 아이템:', JSON.stringify(d[0], null, 2));
         }
 
         setData(d);
@@ -193,10 +190,8 @@ export default function SearchScreen({ navigation }: any) {
   // 3-b) 남은 userId들에 대해 /api/user/info 로 username 채우기 (최대 20개 동시)
   // SearchScreen.tsx의 3-b) useEffect 수정
   useEffect(() => {
-    console.log('[username 수집] useEffect 시작, data 개수:', data?.length ?? 0);
 
     if (!Array.isArray(data) || data.length === 0) {
-      console.log('[username 수집] data가 비어있어서 종료');
       return;
     }
 
@@ -212,7 +207,6 @@ export default function SearchScreen({ navigation }: any) {
 
       // ⚠️ 여기서는 현재 상태를 직접 읽지 말고, inFlightRef만 체크
       if (inFlightRef.current.has(uid)) {
-        console.log(`[username 수집] 요청 중: userId=${uid}`);
         continue;
       }
 
@@ -221,64 +215,50 @@ export default function SearchScreen({ navigation }: any) {
       if (need.length >= 20) break;
     }
 
-    console.log(`[username 수집] API 호출할 userId들:`, need);
 
     if (need.length === 0) {
-      console.log('[username 수집] 호출할 userId가 없어서 종료');
       return;
     }
 
     let cancelled = false;
     (async () => {
-      console.log('[username 수집] 비동기 함수 시작');
       try {
         const results = await Promise.all(
           need.map(async (id) => {
             try {
               const user = await fetchUserInfoById(id);
-              console.log(`[username 수집] API 성공: ${id} -> ${user?.username}`);
               return { userId: id, user };
             } catch (err: any) {
-              console.log(`[username 수집] API 실패: userId=${id}, error=${err?.message}`);
               return { userId: id, user: null };
             }
           })
         );
 
-        console.log('[username 수집] Promise.all 완료, cancelled?', cancelled);
         if (cancelled) {
-          console.log('[username 수집] ❌ cancelled=true이므로 맵 업데이트 안함');
           return;
         }
 
-        console.log(`[username 수집] 성공한 결과 개수:`, results.filter(r => r.user).length);
 
         setIdUsernameMap(prev => {
-          console.log('[username 수집] setIdUsernameMap 시작, 기존 맵 크기:', prev.size);
           const next = new Map(prev);
 
           let addedCount = 0;
           for (const { userId, user } of results) {
             if (user?.username && !next.has(userId)) {
-              console.log(`[username 수집] ✅ 맵에 추가: ${userId} -> ${user.username}`);
               next.set(userId, user.username);
               addedCount++;
             }
           }
 
-          console.log(`[username 수집] 최종: ${addedCount}개 추가됨, 새 맵 크기: ${next.size}`);
           return next;
         });
       } catch (error: any) {
-        console.log('[username 수집] 예외 발생:', error?.message);
       } finally {
-        console.log('[username 수집] finally, inFlight에서 제거:', need);
         need.forEach(id => inFlightRef.current.delete(id));
       }
     })();
 
     return () => {
-      console.log('[username 수집] cleanup, cancelled=true');
       cancelled = true;
     };
   }, [data]); // ✅ idUsernameMap 제거! data만 의존
